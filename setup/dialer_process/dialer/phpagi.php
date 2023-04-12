@@ -863,7 +863,7 @@
    function fastpass_say_digits(&$buffer, $digits, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -874,7 +874,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}));
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]));
    }
 
    /**
@@ -891,7 +891,7 @@
    function fastpass_say_number(&$buffer, $number, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -902,7 +902,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}));
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]));
    }
 
    /**
@@ -919,7 +919,7 @@
    function fastpass_say_phonetic(&$buffer, $text, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -930,7 +930,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}));
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]));
    }
 
    /**
@@ -947,7 +947,7 @@
    function fastpass_say_time(&$buffer, $time=NULL, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -958,7 +958,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}));
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]));
    }
 
    /**
@@ -978,7 +978,7 @@
    function fastpass_stream_file(&$buffer, $filename, $escape_digits='', $offset=0)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -989,7 +989,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}), 'endpos'=>0);
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]), 'endpos'=>0);
    }
 
    /**
@@ -1006,7 +1006,7 @@
    function fastpass_text2wav(&$buffer, $text, $escape_digits='', $frequency=8000)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -1017,7 +1017,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}), 'endpos'=>0);
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]), 'endpos'=>0);
    }
 
    /**
@@ -1034,7 +1034,7 @@
    function fastpass_swift(&$buffer, $text, $escape_digits='', $frequency=8000, $voice=NULL)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -1045,7 +1045,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}), 'endpos'=>0);
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]), 'endpos'=>0);
    }
 
    /**
@@ -1061,7 +1061,7 @@
    function fastpass_say_punctuation(&$buffer, $text, $escape_digits='', $frequency=8000)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer[strlen($buffer)-1]))
      {
        $proceed = true;
      }
@@ -1072,7 +1072,7 @@
          $buffer .= chr($res['result']);
        return $res;
      }
-     return array('code'=>AGIRES_OK, 'result'=>ord($buffer{strlen($buffer)-1}));
+     return array('code'=>AGIRES_OK, 'result'=>ord($buffer[strlen($buffer)-1]));
    }
 
    /**
@@ -1160,7 +1160,7 @@
       {
         foreach($choices as $prompt)
         {
-          $ret = $prompt{0} == '*' ? $this->text2wav(substr($prompt, 1), $keys) : $this->stream_file($prompt, $keys);
+          $ret = $prompt[0] == '*' ? $this->text2wav(substr($prompt, 1), $keys) : $this->stream_file($prompt, $keys);
 
           if($ret['code'] != AGIRES_OK || $ret['result'] == -1)
           {
@@ -1220,9 +1220,9 @@
       $ret = array('name'=>'', 'protocol'=>'', 'username'=>'', 'host'=>'', 'port'=>'');
       $callerid = trim($callerid);
 
-      if($callerid{0} == '"' || $callerid{0} == "'")
+      if($callerid[0] == '"' || $callerid[0] == "'")
       {
-        $d = $callerid{0};
+        $d = $callerid[0];
         $callerid = explode($d, substr($callerid, 1));
         $ret['name'] = array_shift($callerid);
         $callerid = implode($d, $callerid);
@@ -1404,7 +1404,7 @@
         {
           if($command)
           {
-            switch($code{0})
+            switch($code[0])
             {
               case '2': $text = substr($text, 0, strlen($text) - 1); break; // backspace
               case '5': $mode = 'LOWERCASE'; break;
@@ -1442,9 +1442,10 @@
     */
     function say_punctuation($text, $escape_digits='', $frequency=8000)
     {
+      $ret ="";
       for($i = 0; $i < strlen($text); $i++)
       {
-        switch($text{$i})
+        switch($text[$i])
         {
           case ' ': $ret .= 'SPACE ';
           case ',': $ret .= 'COMMA '; break;
@@ -1479,7 +1480,7 @@
           case '|': $ret .= 'BAR '; break;
           case '_': $ret .= 'UNDERSCORE '; break;
           case '~': $ret .= 'TILDE '; break;
-          default: $ret .= $text{$i} . ' '; break;
+          default: $ret .= $text[$i] . ' '; break;
         }
       }
       return $this->text2wav($ret, $escape_digits, $frequency);
@@ -1541,7 +1542,7 @@
       $ret['code'] = substr($str, 0, 3);
       $str = trim(substr($str, 3));
 
-      if($str{0} == '-') // we have a multiline response!
+      if($str[0] == '-') // we have a multiline response!
       {
         $count = 0;
         $str = substr($str, 1) . "\n";
@@ -1576,14 +1577,14 @@
           if($in_token) // we previously hit a token starting with '(' but not ending in ')'
           {
 	    $tmp = trim($token);
-	    $tmp = $tmp{0} == '(' ? substr($tmp,1):$tmp;
+	    $tmp = $tmp[0] == '(' ? substr($tmp,1):$tmp;
 	    $tmp = str_ends_with($tmp, ')') ? substr($tmp,0,strlen($tmp)-1):$tmp;
 	    $ret['data'] .= ' ' . trim($tmp);
-            if($token{strlen($token)-1} == ')') $in_token = false;
+            if($token[strlen($token)-1] == ')') $in_token = false;
           }
-          elseif($token{0} == '(')
+          elseif($token[0] == '(')
           {
-            if($token{strlen($token)-1} != ')') $in_token = true;
+            if($token[strlen($token)-1] != ')') $in_token = true;
 	    $tmp = trim(substr($token,1));
 	    $tmp = $in_token ? $tmp : substr($tmp,0,strlen($tmp)-1);
 	    $ret['data'] .= ' ' . trim($tmp);
@@ -1712,6 +1713,8 @@
 
       if(function_exists('mysql_errno') && strpos(' '.strtolower($message), 'mysql'))
         $message .= 'MySQL error ' . mysql_errno() . ": " . mysql_error() . "\n\n";
+      if(strpos(' '.strtolower($message), 'mysqli'))
+        $message .= 'MySQLi error ' . $mysqli->error . "\n\n";
 
       // figure out who we are
       if(function_exists('socket_create'))

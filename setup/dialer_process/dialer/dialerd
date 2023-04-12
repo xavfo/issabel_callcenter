@@ -20,7 +20,7 @@
   +----------------------------------------------------------------------+
   | The Initial Developer of the Original Code is PaloSanto Solutions    |
   +----------------------------------------------------------------------+
-  $Id: dialerd,v 1.2 2008/09/08 18:29:36 alex Exp $ */
+  $Id: dialerd,v 2.0 2023/04/11 xavfo Exp $ */
 declare(ticks=8);
 ini_set('memory_limit', -1);        // Permitir al programa usar toda la memoria que necesite
 ini_set('display_errors', 0);       // Impedir que los errores de STDERR se copien en STDOUT
@@ -169,7 +169,7 @@ function main($paramConfig, $sDescDemonio, $sNombreDemonio /* , ... */)
 Main log opened correctly
 ----------------------------------------
 $sBannerLog
-      (PHP implementation, v1.0)
+      (PHP implementation, v2.0)
          Powered by Issabel
 
      Please report bugs/issues at:
