@@ -30,7 +30,7 @@ ini_set('error_reporting', E_ALL & ~E_STRICT);  // Mostrar advertencias además 
 ini_set('include_path', dirname($argv[0]).":".ini_get('include_path'));
 
 // Auto-cargado de las clases en base al nombre de archivo
-function __autoload($sNombreClase) {
+function autocargador($sNombreClase) {
     $sNombreBase = $sNombreClase.'.class.php';
     foreach (explode(':', ini_get('include_path')) as $sDirInclude) {
         if (file_exists($sDirInclude.'/'.$sNombreBase)) {
@@ -39,6 +39,8 @@ function __autoload($sNombreClase) {
         }
     }
 }
+spl_autoload_register('autocargador');
+
 
 require_once('Console/Getopt.php');     // Parseo de opciones de línea de comando
 
