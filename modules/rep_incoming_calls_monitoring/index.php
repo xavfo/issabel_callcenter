@@ -23,8 +23,8 @@
   $Id: index.php,v 1.1 2007/01/09 23:49:36 alex Exp $
 */
 
-require_once "libs/misc.lib.php";
-require_once "libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
 
 global $keylist;
 $keylist = array('onqueue', 'abandoned', 'success', 'finished', 'losttrack', 'total');
@@ -34,9 +34,9 @@ function _moduleContent(&$smarty, $module_name)
     global $arrConf;
     global $arrLang;
 
-    require_once "modules/agent_console/libs/issabel2.lib.php";
-    require_once "modules/agent_console/libs/paloSantoConsola.class.php";
-    require_once "modules/agent_console/libs/JSON.php";
+    require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
+    require_once __DIR__ . "/modules/agent_console/libs/paloSantoConsola.class.php";
+    require_once __DIR__ . "/modules/agent_console/libs/JSON.php";
     require_once "modules/$module_name/configs/default.conf.php";
 
     // Directorio de este módulo
@@ -65,15 +65,10 @@ function _moduleContent(&$smarty, $module_name)
         $sAction = '';
 
     $oPaloConsola = new PaloSantoConsola();
-    switch ($sAction) {
-    case 'checkStatus':
-        $sContenido = manejarMonitoreo_checkStatus($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola);
-        break;
-    case '':
-    default:
-        $sContenido = manejarMonitoreo_HTML($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola);
-        break;
-    }
+    $sContenido = match ($sAction) {
+        'checkStatus' => manejarMonitoreo_checkStatus($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola),
+        default => manejarMonitoreo_HTML($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola),
+    };
     $oPaloConsola->desconectarTodo();
 
     return $sContenido;
@@ -81,19 +76,15 @@ function _moduleContent(&$smarty, $module_name)
 
 function manejarMonitoreo_HTML_estiloestado($k)
 {
-    switch ($k) {
-    case 'total':
-        return 'font-weight: bold;';
-    case 'abandoned':
-        return 'color: #ff0000;';
-    case 'success':
-        return 'color: #008800;';
-    default:
-        return '';
-    }
+    return match ($k) {
+        'total' => 'font-weight: bold;',
+        'abandoned' => 'color: #ff0000;',
+        'success' => 'color: #008800;',
+        default => '',
+    };
 }
 
-function manejarMonitoreo_HTML($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola)
+function manejarMonitoreo_HTML($module_name, $smarty, $sDirLocalPlantillas, $oPaloConsola): string
 {
     global $arrLang;
     global $keylist;
@@ -270,10 +261,8 @@ function manejarMonitoreo_checkStatus($module_name, $smarty, $sDirLocalPlantilla
     // Acumular inmediatamente las filas que son distintas en estado
     $jsonData = construirDatosJSON($estadoMonitor);
     foreach ($jsonData as $jsonKey => $jsonRow) {
-    	if (isset($estadoCliente[$jsonKey])) {
-    	    if ($estadoCliente[$jsonKey] != $jsonRow) {
-    	        $respuesta[$jsonKey] = $jsonRow;
-    	    }
+    	if (isset($estadoCliente[$jsonKey]) && $estadoCliente[$jsonKey] != $jsonRow) {
+    	    $respuesta[$jsonKey] = $jsonRow;
     	}
     }
 
@@ -382,7 +371,7 @@ function manejarMonitoreo_checkStatus($module_name, $smarty, $sDirLocalPlantilla
             }
         }
 
-        if (count($respuesta) > 0) {
+        if ($respuesta !== []) {
             @session_start();
             $estadoHash = generarEstadoHash($module_name, $estadoCliente);
             $respuesta['estadoClienteHash'] = $estadoHash;

@@ -48,11 +48,11 @@ function _tr($s)
 if (!function_exists('getParameter')) {
 function getParameter($parameter)
 {
-    if(isset($_POST[$parameter]))
+    if (isset($_POST[$parameter])) {
         return $_POST[$parameter];
-    else if(isset($_GET[$parameter]))
+    } elseif (isset($_GET[$parameter])) {
         return $_GET[$parameter];
-    else
+    } else
         return null;
 }
 }
@@ -102,7 +102,7 @@ function obtenerClaveConocidaMySQL($sNombreUsuario, $ruta_base='')
  * @return  mixed   NULL si no se reconoce usuario, o el DNS con clave resuelta
  */
 if (!function_exists('generarDSNSistema')) {
-function generarDSNSistema($sNombreUsuario, $sNombreDB, $ruta_base='')
+function generarDSNSistema($sNombreUsuario, $sNombreDB, $ruta_base=''): ?string
 {
     require_once $ruta_base.'libs/paloSantoConfig.class.php';
     switch ($sNombreUsuario) {
@@ -166,7 +166,7 @@ function existeSoporteTituloFramework()
     	$h = fopen($sArchivo, 'r');
         if ($h) {
             while (!feof($h)) {
-            	if (strpos(fgets($h), '$title') !== FALSE) {
+            	if (str_contains(fgets($h), '$title')) {
             		$bExisteSoporteTitulo = TRUE;
                     break;
             	}

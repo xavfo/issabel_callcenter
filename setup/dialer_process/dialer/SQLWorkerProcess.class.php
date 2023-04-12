@@ -20,7 +20,7 @@
  | The Initial Developer of the Original Code is PaloSanto Solutions    |
  +----------------------------------------------------------------------+
  $Id: DialerProcess.class.php,v 1.48 2009/03/26 13:46:58 alex Exp $ */
-require_once 'ECCPHelper.lib.php';
+require_once __DIR__ . '/ECCPHelper.lib.php';
 
 class SQLWorkerProcess extends TuberiaProcess
 {
@@ -53,7 +53,7 @@ class SQLWorkerProcess extends TuberiaProcess
 
     private $_finalizandoPrograma = FALSE;
 
-    public function inicioPostDemonio($infoConfig, &$oMainLog)
+    public function inicioPostDemonio($infoConfig = null, &$oMainLog = null): bool
     {
         $this->_log = $oMainLog;
         $this->_multiplex = new MultiplexServer(NULL, $this->_log);
@@ -91,7 +91,9 @@ class SQLWorkerProcess extends TuberiaProcess
             $this->_tuberia->registrarManejador('*', $k, array($this, "msg_$k"));
 
         // Registro de manejadores de eventos desde HubProcess
-        $this->_tuberia->registrarManejador('HubProcess', 'finalizando', array($this, "msg_finalizando"));
+        $this->_tuberia->registrarManejador('HubProcess', 'finalizando', function ($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos) {
+            return $this->msg_finalizando($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos);
+        });
 
         $this->DEBUG = $this->_configDB->dialer_debug;
 
@@ -152,7 +154,7 @@ class SQLWorkerProcess extends TuberiaProcess
         }
     }
 
-    public function procedimientoDemonio()
+    public function procedimientoDemonio(): bool
     {
         // Lo siguiente NO debe de iniciar operaciones DB, sólo acumular acciones
         $bPaqProcesados = $this->_multiplex->procesarPaquetes();
@@ -262,7 +264,7 @@ class SQLWorkerProcess extends TuberiaProcess
         }
     }
 
-    public function limpiezaDemonio($signum)
+    public function limpiezaDemonio($signum = null)
     {
         // Mandar a cerrar todas las conexiones activas
         $this->_multiplex->finalizarServidor();
@@ -311,7 +313,7 @@ class SQLWorkerProcess extends TuberiaProcess
                             $k, $this->_configDB->$k);
                     }
 
-                    if (in_array($k, array('dialer_debug'))) {
+                    if ($k == 'dialer_debug') {
                         $this->_tuberia->msg_ECCPProcess_actualizarConfig(
                             $k, $this->_configDB->$k);
                     }
@@ -347,10 +349,10 @@ class SQLWorkerProcess extends TuberiaProcess
 
     private function _encolarAccionPendiente($method, $params)
     {
-        array_push($this->_accionesPendientes, array(
+        $this->_accionesPendientes[] = array(
             array($this, $method),    // callable
             $params,    // params
-        ));
+        );
 
     }
 
@@ -807,24 +809,20 @@ class SQLWorkerProcess extends TuberiaProcess
     private function _sqlupdatestatcampaign($id_campaign, $num_completadas,
             $promedio, $desviacion)
     {
-        $eventos = array();
-
         $sth = $this->_db->prepare(
             'UPDATE campaign SET num_completadas = ?, promedio = ?, desviacion = ? WHERE id = ?');
         $sth->execute(array($num_completadas, $promedio, $desviacion, $id_campaign));
 
-        return $eventos;
+        return array();
     }
 
     private function _agregarArchivoGrabacion($tipo_llamada, $id_llamada, $uniqueid, $channel, $recordingfile)
     {
-        $eventos = array();
-
         // TODO: configurar prefijo de monitoring
         $sDirBaseMonitor = '/var/spool/asterisk/monitor/';
 
         // Quitar el prefijo de monitoring de todos los archivos
-        if (strpos($recordingfile, $sDirBaseMonitor) === 0)
+        if (str_starts_with($recordingfile, $sDirBaseMonitor))
             $recordingfile = substr($recordingfile, strlen($sDirBaseMonitor));
 
         // Se asume que el archivo está completo con extensión
@@ -841,7 +839,7 @@ class SQLWorkerProcess extends TuberiaProcess
             $sth->execute(array($id_llamada, $uniqueid, $channel, $recordingfile));
         }
 
-        return $eventos;
+        return array();
     }
 
     private function _AgentLogin($sAgente, $iTimestampLogin, $id_agent)
@@ -963,13 +961,9 @@ SQL_EXISTE_AUDIT;
         return $eventos;
     }
 
-    private function _AgentUnlinked($sAgente, $sTipoLlamada, $idCampaign,
-        $idLlamada, $sPhone, $sFechaFin, $iDuracion, $bShortFlag, $paramProgreso)
+    private function _AgentUnlinked($sAgente, $sTipoLlamada, $idCampaign, $idLlamada, $sPhone, $sFechaFin, $iDuracion, $bShortFlag, $paramProgreso)
     {
-        $eventos = array();
-        $eventos_forward = array();
-
-        $infoLlamada = array(
+        return [array(), array(
             'calltype'      =>  $sTipoLlamada,
             'campaign_id'   =>  $idCampaign,
             'call_id'       =>  $idLlamada,
@@ -979,13 +973,7 @@ SQL_EXISTE_AUDIT;
             'shortcall'     =>  $bShortFlag ? 1 : 0,
             'campaignlog_id'=>  NULL,
             'queue'         =>  $paramProgreso['queue'],
-        );
-
-        list($infoLlamada['campaignlog_id'], $eventos_forward) = $this->_construirEventoProgresoLlamada($paramProgreso);
-        $eventos_forward[] = array('AgentUnlinked', array($sAgente, $infoLlamada));
-
-        $eventos[] = array('ECCPProcess', 'emitirEventos', array($eventos_forward));
-        return $eventos;
+        ), $this->_construirEventoProgresoLlamada($paramProgreso), array('AgentUnlinked', array($sAgente, $infoLlamada)), array('ECCPProcess', 'emitirEventos', array($eventos_forward))];
     }
 
     private function _marcarFinalHold($iTimestampFinalPausa, $sAgente, $infoLlamada, $infoSeguimiento)

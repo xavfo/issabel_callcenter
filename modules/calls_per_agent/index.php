@@ -46,11 +46,11 @@ if (!function_exists('load_language_module')) {
     }
 }
 
-require_once "libs/paloSantoGrid.class.php";
-require_once "libs/paloSantoDB.class.php";
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/paloSantoConfig.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/paloSantoDB.class.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/paloSantoConfig.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
     
 function _moduleContent(&$smarty, $module_name)
 {
@@ -80,7 +80,7 @@ function _moduleContent(&$smarty, $module_name)
         'IN'    =>  _tr("Ingoing"),
         'OUT'   =>  _tr("Outgoing"),
     );
-    $arrFormElements = createFieldFilter($comboTipos);
+    $arrFormElements = createFieldFilter();
     $oFilterForm = new paloForm($smarty, $arrFormElements);
     
     // Variables a usar para el URL, consulta, y POST
@@ -160,7 +160,7 @@ function _moduleContent(&$smarty, $module_name)
         $sumDuration += $cdr['sum_duration'];       // Total de segundos en llamadas
         $timeMayor = ($timeMayor < $cdr['max_duration']) ? $cdr['max_duration'] : $timeMayor;
     }
-    $sTagInicio = (!$oGrid->isExportAction()) ? '<b>' : '';
+    $sTagInicio = ($oGrid->isExportAction()) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
     $arrData[] = array(
         $sTagInicio._tr('Total').$sTagFinal,
@@ -172,7 +172,7 @@ function _moduleContent(&$smarty, $module_name)
     );
     
     // Construyo el URL base
-    if(isset($arrFilterExtraVars) && is_array($arrFilterExtraVars) && count($arrFilterExtraVars)>0) {
+    if(isset($arrFilterExtraVars) && is_array($arrFilterExtraVars) && $arrFilterExtraVars !== []) {
         $urlVars = array_merge($urlVars, $arrFilterExtraVars);
     }
         
@@ -189,7 +189,7 @@ function _moduleContent(&$smarty, $module_name)
     return $oGrid->fetchGrid();    
 }
 
-function formatoSegundos($iSeg)
+function formatoSegundos($iSeg): string
 {
     $iSeg = (int)$iSeg;
     $iHora = $iMinutos = $iSegundos = 0;
@@ -201,7 +201,7 @@ function formatoSegundos($iSeg)
 
 function createFieldFilter($arrDataTipo)
 {
-    $arrFormElements = array(
+    return array(
         "date_start"  => array(
             "LABEL"                  => _tr('Start Date'),
             "REQUIRED"               => "yes",
@@ -238,6 +238,5 @@ function createFieldFilter($arrDataTipo)
             "VALIDATION_TYPE"        => "ereg",
             "VALIDATION_EXTRA_PARAM" => "^[[:digit:]]+$"),
          );
-    return $arrFormElements;
 }
 ?>

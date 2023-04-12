@@ -21,12 +21,12 @@
   +----------------------------------------------------------------------+
   $Id: data_fom $ */
 
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/paloSantoGrid.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
-require_once "modules/agent_console/libs/JSON.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/JSON.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -49,20 +49,15 @@ function _moduleContent(&$smarty, $module_name)
     $smarty->assign("MODULE_NAME", $module_name);
 
     $pDB = new paloDB($arrConf['cadena_dsn']);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_message", _tr('Error when connecting to database')." ".$pDB->errMsg);
     }
     
-    switch (getParameter('action')) {
-    case 'add':
-    case 'edit':
-        return modificarFormulario($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'save':
-        return guardarFormulario($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'list':
-    default:
-        return listarFormularios($pDB, $smarty, $module_name, $local_templates_dir);
-    }
+    return match (getParameter('action')) {
+        'add', 'edit' => modificarFormulario($pDB, $smarty, $module_name, $local_templates_dir),
+        'save' => guardarFormulario($pDB, $smarty, $module_name, $local_templates_dir),
+        default => listarFormularios($pDB, $smarty, $module_name, $local_templates_dir),
+    };
 }
 
 function listarFormularios($pDB, $smarty, $module_name, $local_templates_dir)
@@ -74,7 +69,7 @@ function listarFormularios($pDB, $smarty, $module_name, $local_templates_dir)
     
     // Validar estado de formulario elegido
     $cbo_estado = getParameter('cbo_estado');
-    if (!isset($cbo_estado) || !in_array($cbo_estado, array_keys($cbo_estados))) {
+    if (!isset($cbo_estado) || !array_key_exists($cbo_estado, $cbo_estados)) {
         $cbo_estado = 'A';
     }
     $paramFiltro = array(

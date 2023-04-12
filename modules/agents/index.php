@@ -21,11 +21,11 @@
   +----------------------------------------------------------------------+
   $Id: index.php,v 1.2 2008/06/07 06:28:13 cbarcos Exp $ */
 
-require_once("libs/paloSantoGrid.class.php");
-require_once("libs/Agentes.class.php");
+require_once(__DIR__ . "/libs/paloSantoGrid.class.php");
+require_once(__DIR__ . "/libs/Agentes.class.php");
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
-require_once "modules/agent_console/libs/JSON.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/JSON.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -33,7 +33,7 @@ function _moduleContent(&$smarty, $module_name)
 
     //include module files
     include_once "modules/$module_name/configs/default.conf.php";
-    include_once "modules/agent_console/configs/default.conf.php"; // For asterisk AMI credentials
+    include_once __DIR__ . "/modules/agent_console/configs/default.conf.php"; // For asterisk AMI credentials
 
     global $arrConf;
 
@@ -53,19 +53,13 @@ function _moduleContent(&$smarty, $module_name)
     // Mostrar pantalla correspondiente
     $sAction = 'list_agents';
     if (isset($_REQUEST['action'])) $sAction = $_REQUEST['action'];
-    switch ($sAction) {
-    case 'new_agent':
-        return newAgent($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'edit_agent':
-        return editAgent($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'reparar_file':
-        return repararAgente_file($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'reparar_db':
-        return repararAgente_db($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'list_agents':
-    default:
-        return listAgent($pDB, $smarty, $module_name, $local_templates_dir);
-    }
+    return match ($sAction) {
+        'new_agent' => newAgent($pDB, $smarty, $module_name, $local_templates_dir),
+        'edit_agent' => editAgent($pDB, $smarty, $module_name, $local_templates_dir),
+        'reparar_file' => repararAgente_file($pDB, $smarty, $module_name, $local_templates_dir),
+        'reparar_db' => repararAgente_db($pDB, $smarty, $module_name, $local_templates_dir),
+        default => listAgent($pDB, $smarty, $module_name, $local_templates_dir),
+    };
 }
 
 function listAgent($pDB, $smarty, $module_name, $local_templates_dir)
@@ -105,7 +99,7 @@ function listAgent($pDB, $smarty, $module_name, $local_templates_dir)
     );
     if (isset($_GET['cbo_estado'])) $sEstadoAgente = $_GET['cbo_estado'];
     if (isset($_POST['cbo_estado'])) $sEstadoAgente = $_POST['cbo_estado'];
-    if (!in_array($sEstadoAgente, array_keys($listaEstados))) $sEstadoAgente = 'All';
+    if (!array_key_exists($sEstadoAgente, $listaEstados)) $sEstadoAgente = 'All';
 
     // Leer los agentes activos y comparar contra la lista de Asterisk
     $listaAgentesCallCenter = $oAgentes->getAgents();
@@ -334,7 +328,7 @@ function formEditAgent($pDB, $smarty, $module_name, $local_templates_dir, $id_ag
         }
     }
 
-    require_once("libs/paloSantoForm.class.php");
+    require_once(__DIR__ . "/libs/paloSantoForm.class.php");
     $arrFormElements = getFormAgent($smarty, !is_null($id_agent));
 
     // Valores por omisión para primera carga
@@ -419,11 +413,10 @@ function formEditAgent($pDB, $smarty, $module_name, $local_templates_dir, $id_ag
     }
 
     $smarty->assign('icon', 'images/user.png');
-    $contenidoModulo = $oForm->fetchForm(
+    return $oForm->fetchForm(
         "$local_templates_dir/new.tpl", 
         is_null($id_agent) ? _tr("New agent") : _tr('Edit agent').' "'.$_POST['description'].'"',
         $_POST);
-    return $contenidoModulo;
 }
 
 function getFormAgent(&$smarty, $bEdit)
@@ -435,8 +428,7 @@ function getFormAgent(&$smarty, $bEdit)
     $smarty->assign("EDIT", _tr("Edit"));
     $smarty->assign("DELETE", _tr("Delete"));
     $smarty->assign("CONFIRM_CONTINUE", _tr("Are you sure you wish to continue?"));
-
-    $arrFormElements = array(
+    return array(
         "description" => array(
             "LABEL"                  => ""._tr('Name')."",
             "EDITABLE"               => "yes",
@@ -487,6 +479,5 @@ function getFormAgent(&$smarty, $bEdit)
             "VALIDATION_TYPE"        => "text",
             "VALIDATION_EXTRA_PARAM" => ""),
     );
-    return $arrFormElements;
 }
 ?>

@@ -21,11 +21,11 @@
   +----------------------------------------------------------------------+
 */
 
-require_once "libs/paloSantoGrid.class.php";
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -40,19 +40,15 @@ function _moduleContent(&$smarty, $module_name)
     $local_templates_dir = "$base_dir/modules/$module_name/".$templates_dir.'/'.$arrConfig['theme'];
 
     $pDB = new paloDB($arrConfig['cadena_dsn']);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_message", _tr("Error when connecting to database")." ".$pDB->errMsg);
         return '';
     }
     
-    switch (getParameter('action')) {
-    case 'preview':
-        return vistaPreviaFormulario($pDB, $smarty, $module_name, $local_templates_dir);
-        break;
-    case 'list':
-    default:
-        return listarFormularios($pDB, $smarty, $module_name, $local_templates_dir);
-    }
+    return match (getParameter('action')) {
+        'preview' => vistaPreviaFormulario($pDB, $smarty, $module_name, $local_templates_dir),
+        default => listarFormularios($pDB, $smarty, $module_name, $local_templates_dir),
+    };
 }
 
 function listarFormularios($pDB, $smarty, $module_name, $local_templates_dir)
@@ -64,7 +60,7 @@ function listarFormularios($pDB, $smarty, $module_name, $local_templates_dir)
     
     // Validar estado de formulario elegido
     $cbo_estado = getParameter('cbo_estado');
-    if (!isset($cbo_estado) || !in_array($cbo_estado, array_keys($cbo_estados))) {
+    if (!isset($cbo_estado) || !array_key_exists($cbo_estado, $cbo_estados)) {
         $cbo_estado = 'A';
     }
     $paramFiltro = array(
@@ -119,7 +115,7 @@ function listarFormularios($pDB, $smarty, $module_name, $local_templates_dir)
 
 function formFilter($estados)
 {
-    $arrFilter = array( 
+    return array( 
             'cbo_estado'    =>    array(
                 "LABEL"                => _tr('Status'),
                 "REQUIRED"               => "no",
@@ -130,7 +126,6 @@ function formFilter($estados)
                 "ONCHANGE"               => 'submit();',
         ),
     );
-    return $arrFilter;
 }
 
 function vistaPreviaFormulario($pDB, $smarty, $module_name, $local_templates_dir)

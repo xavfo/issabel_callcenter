@@ -20,12 +20,12 @@
   | The Initial Developer of the Original Code is PaloSanto Solutions    |
   +----------------------------------------------------------------------+
 */
-include_once("libs/paloSantoDB.class.php");
+include_once(__DIR__ . "/libs/paloSantoDB.class.php");
 
 class paloSantoUploadFile
 {
 	private $_DB;
-	var $errMsg;
+	public $errMsg;
     private $_numInserciones;
     private $_numActualizaciones;
 	
@@ -105,7 +105,7 @@ class paloSantoUploadFile
     		$clavesColumnas = array();
     		while ($tupla = fgetcsv($hArchivo, 2048,",")) {
     			$iNumLinea++;
-    			foreach ($tupla as $k => $v) $tupla[$k] = mb_convert_encoding($tupla[$k], "UTF-8", $sEncoding);
+    			foreach (array_keys($tupla) as $k) $tupla[$k] = mb_convert_encoding($tupla[$k], "UTF-8", $sEncoding);
                 $tupla[0] = trim($tupla[0]);
     			if (count($tupla) == 1 && trim($tupla[0]) == '') {
     				// Línea vacía
@@ -128,11 +128,11 @@ class paloSantoUploadFile
                         'NUMERO'    =>  array_shift($tupla),
                         'ATRIBUTOS' =>  array(),
                     );
-                    for ($i = 0; $i < count($tupla); $i++) {
-                    	$tuplaLista['ATRIBUTOS'][$i + 1] = array(
-                            'CLAVE' =>  ($i < count($clavesColumnas) && $clavesColumnas[$i] != '') ? $clavesColumnas[$i] : ($i + 1),
-                            'VALOR' =>  $tupla[$i],
-                        );
+                    foreach ($tupla as $i => $singleTupla) {
+                        $tuplaLista['ATRIBUTOS'][$i + 1] = array(
+                               'CLAVE' =>  ($i < count($clavesColumnas) && $clavesColumnas[$i] != '') ? $clavesColumnas[$i] : ($i + 1),
+                               'VALOR' =>  $singleTupla,
+                           );
                     }
   					$listaNumeros[] = $tuplaLista;
     			}
@@ -157,8 +157,7 @@ class paloSantoUploadFile
             "ISO-8859-15"
         );
         $sContenido = file_get_contents($sFilePath);
-        $sEncoding = mb_detect_encoding($sContenido, $listaEncodings);
-        return $sEncoding;
+        return mb_detect_encoding($sContenido, $listaEncodings);
     }
     
     /**
@@ -260,13 +259,11 @@ class paloSantoUploadFile
                     }
                     if (count($r) <= 0) {
                         $sql = 
-                            'INSERT INTO contact (name, apellido, telefono, origen, cedula_ruc) '.
-                            'VALUES (?, ?, ?, ?, ?)';
+                            'INSERT INTO contact (name, apellido, telefono, origen, cedula_ruc) VALUES (?, ?, ?, ?, ?)';
                         $this->_numInserciones++;
                     } else {
                         $sql =
-                            'UPDATE contact SET name = ?, apellido = ?, telefono = ?, origen = ? '.
-                            'WHERE cedula_ruc = ?';
+                            'UPDATE contact SET name = ?, apellido = ?, telefono = ?, origen = ? WHERE cedula_ruc = ?';
                         $this->_numActualizaciones++;
                     }
                     $params = array($sNombre, $sApellido, $tuplaNumero['NUMERO'], $sOrigen, $sCedula);

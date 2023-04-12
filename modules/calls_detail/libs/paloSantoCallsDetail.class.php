@@ -24,7 +24,7 @@
 class paloSantoCallsDetail
 {
     private $_DB;   // Conexión a la base de datos
-    var $errMsg;    // Último mensaje de error
+    public $errMsg;    // Último mensaje de error
 
     function paloSantoCallsDetail(&$pDB)
     {
@@ -177,7 +177,7 @@ class paloSantoCallsDetail
      *      9   transferencia
      *     10   estado final de la llamada
      */
-    function & leerDetalleLlamadas($param, $limit = NULL, $offset = 0)
+    function & leerDetalleLlamadas(mixed $param, mixed $limit = NULL, mixed $offset = 0)
     {
         if (!is_array($param)) {
             $this->errMsg = '(internal) Invalid parameter array';
@@ -237,7 +237,8 @@ SQL_OUTGOING;
         $sPeticionSQL .= ' ORDER BY start_date DESC, telefono';
         if (!empty($limit)) {
             $sPeticionSQL .= " LIMIT ? OFFSET ?";
-            array_push($paramSQL, $limit, $offset);
+            $paramSQL[] = $limit;
+            $paramSQL[] = $offset;
         }
 
         // Ejecutar la petición SQL para todos los datos
@@ -282,7 +283,7 @@ SQL_OUTGOING;
      *
      * @return  mixed   NULL en caso de error, o cuenta de registros.
      */
-    function contarDetalleLlamadas($param)
+    function contarDetalleLlamadas(mixed $param)
     {
         if (!is_array($param)) {
             $this->errMsg = '(internal) Invalid parameter array';
@@ -320,7 +321,7 @@ SQL_OUTGOING;
         if (in_array($param['calltype'], array('any', 'outgoing'))) {
             // Agregar suma de llamadas salientes
             $tupla = $this->_DB->getFirstRowQuery($sPeticion_outgoing, FALSE, $param_outgoing);
-            if (is_array($tupla) && count($tupla) > 0) {
+            if (is_array($tupla) && $tupla !== []) {
                 $iNumRegistros += $tupla[0];
             } elseif (!is_array($tupla)) {
                 $this->errMsg = '(internal) Failed to count CDRs (outgoing) - '.$this->_DB->errMsg;
@@ -330,7 +331,7 @@ SQL_OUTGOING;
         if (in_array($param['calltype'], array('any', 'incoming'))) {
             // Agregar suma de llamadas entrantes
             $tupla = $this->_DB->getFirstRowQuery($sPeticion_incoming, FALSE, $param_incoming);
-            if (is_array($tupla) && count($tupla) > 0) {
+            if (is_array($tupla) && $tupla !== []) {
                 $iNumRegistros += $tupla[0];
             } elseif (!is_array($tupla)) {
                 $this->errMsg = '(internal) Failed to count CDRs (incoming) - '.$this->_DB->errMsg;

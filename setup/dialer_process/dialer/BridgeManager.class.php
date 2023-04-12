@@ -23,14 +23,12 @@
 
 class BridgeManager
 {
-	var $DEBUG = FALSE;
-    private $_log;
+	public $DEBUG = FALSE;
 
-    var $_bridges = array();
+    public $_bridges = array();
 
-    function __construct($log)
+    function __construct(private $_log)
     {
-        $this->_log = $log;
     }
 
     function msg_BridgeCreate($params)

@@ -23,6 +23,8 @@
 
 class paloSantoCallsAgent {
 
+    public $_DB;
+    public $errMsg;
     function paloSantoCallsAgent(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB

@@ -24,7 +24,7 @@
 class paloSantoDataFormList
 {
 	private $_db;
-    var $errMsg;
+    public $errMsg;
     
     function __construct($pDB)
     {
@@ -58,7 +58,7 @@ class paloSantoDataFormList
             $where[] = 'estatus = ?';
             break;
         }
-        $cond = (count($where) > 0) ? ' WHERE '.implode(' AND ', $where) : '';
+        $cond = ($where !== []) ? ' WHERE '.implode(' AND ', $where) : '';
         
         return array($cond, $param);
     }

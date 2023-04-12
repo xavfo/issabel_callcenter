@@ -33,14 +33,11 @@
  */
 function leerInfoLlamada($db, $sTipoLlamada, $idCampania, $idLlamada)
 {
-    switch ($sTipoLlamada) {
-    case 'incoming':
-        return _leerInfoLlamadaIncoming($db, $idCampania, $idLlamada);
-    case 'outgoing':
-        return _leerInfoLlamadaOutgoing($db, $idCampania, $idLlamada);
-    default:
-        return NULL;
-    }
+    return match ($sTipoLlamada) {
+        'incoming' => _leerInfoLlamadaIncoming($db, $idCampania, $idLlamada),
+        'outgoing' => _leerInfoLlamadaOutgoing($db, $idCampania, $idLlamada),
+        default => NULL,
+    };
 }
 
 // Leer la información de una llamada saliente. La información incluye lo
@@ -279,12 +276,10 @@ function construirEventoPauseEnd($db, $sAgente, $id_audit_break, $pause_class)
 
 function cargarInfoPausa($db, &$infoAgente, &$recordset)
 {
-    if (!is_null($infoAgente['id_audit_break'])) {
-        if (is_null($recordset)) {
-            $recordset = $db->prepare(
-                'SELECT audit.datetime_init, break.name '.
-                'FROM audit, break WHERE audit.id_break = break.id AND audit.id = ?');
-        }
+    if (!is_null($infoAgente['id_audit_break']) && is_null($recordset)) {
+        $recordset = $db->prepare(
+            'SELECT audit.datetime_init, break.name '.
+            'FROM audit, break WHERE audit.id_break = break.id AND audit.id = ?');
     }
     if (!is_null($infoAgente['id_audit_break'])) {
         $recordset->execute(array($infoAgente['id_audit_break']));

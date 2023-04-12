@@ -21,8 +21,8 @@
   +----------------------------------------------------------------------+
   $Id: paloSantoReportedeTroncalesusadasporHoraeneldia.class.php,v 1.1.1.1 2009/07/27 09:10:19 dlopez Exp $ */
 class paloSantoReportedeTroncalesusadasporHoraeneldia {
-    var $_DB;
-    var $errMsg;
+    public $_DB;
+    public $errMsg;
 
     function paloSantoReportedeTroncalesusadasporHoraeneldia(&$pDB)
     {

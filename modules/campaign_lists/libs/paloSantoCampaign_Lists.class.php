@@ -22,9 +22,9 @@
   +----------------------------------------------------------------------+
   $Id: paloSantoCampaign_Lists.class.php,v 1.1 2018-09-25 02:09:20 Nestor Islas nestor_islas@outlook.com Exp $ */
 class paloSantoCampaign_Lists{
-    var $_DB;
-    var $errMsg;
-    var $table = "campaign_lists";
+    public $_DB;
+    public $errMsg;
+    public $table = "campaign_lists";
 
     function paloSantoCampaign_Lists(&$pDB)
     {
@@ -51,7 +51,7 @@ class paloSantoCampaign_Lists{
     {
         $where    = "";
         $arrParam = null;
-        if(isset($filter_field) & $filter_field !=""){
+        if((isset($filter_field) & $filter_field != "") !== 0){
             $where    = "where $filter_field like ?";
             $arrParam = array("$filter_value%");
         }
@@ -70,7 +70,7 @@ class paloSantoCampaign_Lists{
     {
         $where    = "";
         $arrParam = null;
-        if(isset($filter_field) & $filter_field !=""){
+        if((isset($filter_field) & $filter_field != "") !== 0){
             $where    = "where $filter_field like ?";
             $arrParam = array("$filter_value%");
         }
@@ -149,17 +149,14 @@ SQL_QUERY;
     function getCampaign_Name($id_campaign, $type)
     {
         $result = "UNDEFINED";
-        switch ($type) {
-          case 0:
+        if ($type === 0) {
             $query   = "SELECT name FROM campaign WHERE id = ?";
             $result=$this->_DB->getFirstRowQuery($query, false, array($id_campaign));
-
             if($result==FALSE){
                 $this->errMsg = $this->_DB->errMsg;
                 return 0;
             }
             $result = $result[0];
-          break;
         }
         
         return $result;
@@ -170,20 +167,17 @@ SQL_QUERY;
         $result = FALSE;
         if (!in_array($activate, array(1, 2))) {
             $this->errMsg = _tr('Invalid status');
-        } else if (!preg_match('/^\d+$/', $id_list)) {
+        } elseif (!preg_match('/^\d+$/', $id_list)) {
             $this->errMsg = _tr("Id list is empty");
         } else {
             $changeRecords = true;
-            if($activate == 1)
-            {
+            if ($activate == 1) {
                 // Construir y ejecutar la orden de update SQL
                 $result = $this->_DB->genQuery("UPDATE calls SET `status` = NULL, dnc = 0 WHERE calls.`status` = 'Paused' AND id_list = ?",array($id_list));
                 if (!$result) {
                     $changeRecords = false;
                 }
-            }
-            else if($activate == 2)
-            {
+            } elseif ($activate == 2) {
                 // Construir y ejecutar la orden de update SQL
                 $result = $this->_DB->genQuery("UPDATE calls SET `status` = 'Paused', dnc = 1 WHERE calls.`status` IS NULL AND id_list = ?",array($id_list));
                 if (!$result) {
@@ -229,31 +223,31 @@ SQL_QUERY;
                 case "Abandoned":
                 {
                     $sth = $this->_DB->genQuery("UPDATE campaign_lists SET campaign_lists.abandoned_calls = ? WHERE campaign_lists.id = ?;",array($rowStat['total_calls'], $id_list));
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
                 case "Failure":
                 {
                     $sth = $this->_DB->genQuery("UPDATE campaign_lists SET campaign_lists.failed_calls = ? WHERE campaign_lists.id = ?;",array($rowStat['total_calls'], $id_list));
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
                 case "ShortCall":
                 {
                     $sth = $this->_DB->genQuery("UPDATE campaign_lists SET campaign_lists.short_calls = ? WHERE campaign_lists.id = ?;",array($rowStat['total_calls'], $id_list));
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
                 case "Success":
                 {
                     $sth = $this->_DB->genQuery("UPDATE campaign_lists SET campaign_lists.answered_calls = ? WHERE campaign_lists.id = ?;",array($rowStat['total_calls'], $id_list));
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
                 case "NoAnswer":
                 {
                     $sth = $this->_DB->genQuery("UPDATE campaign_lists SET campaign_lists.no_answer_calls = ? WHERE campaign_lists.id = ?;",array($rowStat['total_calls'], $id_list));
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
                 case "Paused":
@@ -263,7 +257,7 @@ SQL_QUERY;
                 break;
                 default:
                 {
-                    $sentCallsStat = $sentCallsStat + $rowStat['total_calls'];
+                    $sentCallsStat += $rowStat['total_calls'];
                 }
                 break;
             }
@@ -333,7 +327,7 @@ SQL_QUERY;
         return $campaignsOutgoing;
     }
 
-    function delete_list($idList)
+    function delete_list($idList): bool
     {
         $listaSQL = array(
             'DELETE FROM call_recording WHERE id_call_outgoing IN (SELECT id from calls WHERE id_list = ?)',

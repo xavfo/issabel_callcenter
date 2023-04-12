@@ -21,8 +21,8 @@
   +----------------------------------------------------------------------+
 */
     
-require_once "libs/paloSantoForm.class.php";
-require_once "modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
 
 function _moduleContent(&$smarty,$module_name)
 {
@@ -99,7 +99,7 @@ function _moduleContent(&$smarty,$module_name)
 
             $fContenido = '';
             foreach ($r as $tuplaDatos) {
-                $fContenido .= join(',', array_map('csv_replace', $tuplaDatos))."\r\n";
+                $fContenido .= implode(',', array_map('csv_replace', $tuplaDatos))."\r\n";
             }
         }
     }

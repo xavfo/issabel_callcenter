@@ -24,7 +24,7 @@
 class externalUrl
 {
     private $_DB; // instancia de la clase paloDB
-    var $errMsg;
+    public $errMsg;
 
     function externalUrl(&$pDB)
     {
@@ -78,7 +78,7 @@ class externalUrl
         return $tupla;
     }
 
-    function createURL($sUrlTemplate, $sDescription, $sOpenType)
+    function createURL($sUrlTemplate, $sDescription, $sOpenType): bool
     {
     	if (!in_array($sOpenType, array('window', 'iframe', 'jsonp'))) {
             $this->errMsg = '(internal) Invalid URL open type';
@@ -94,7 +94,7 @@ class externalUrl
     }
 
 
-    function updateURL($id_url, $sUrlTemplate, $sDescription, $sOpenType)
+    function updateURL($id_url, $sUrlTemplate, $sDescription, $sOpenType): bool
     {
         if (!in_array($sOpenType, array('window', 'iframe', 'jsonp'))) {
             $this->errMsg = '(internal) Invalid URL open type';
@@ -109,7 +109,7 @@ class externalUrl
         return TRUE;
     }
     
-    function enableURL($id_url, $bEnable)
+    function enableURL($id_url, $bEnable): bool
     {
         $sql = 'UPDATE campaign_external_url SET active = ? WHERE id = ?';
         $r = $this->_DB->genQuery($sql, array($bEnable ? 1 : 0, $id_url));

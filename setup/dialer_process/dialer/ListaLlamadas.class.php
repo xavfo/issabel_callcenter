@@ -23,9 +23,6 @@
 
 class ListaLlamadas implements IteratorAggregate
 {
-    private $_tuberia;
-    private $_log;
-
     private $_llamadas = array();
     private $_indices = array(
         'id_llamada_saliente'   =>  array(),
@@ -39,13 +36,11 @@ class ListaLlamadas implements IteratorAggregate
     );
     private $_idcurrentcall_retrasado = array();
 
-    function __construct($tuberia, $log)
+    function __construct(private $_tuberia, private $_log)
     {
-    	$this->_tuberia = $tuberia;
-        $this->_log = $log;
     }
 
-    function numLlamadas() { return count($this->_llamadas); }
+    function numLlamadas(): int { return count($this->_llamadas); }
 
     function nuevaLlamada($tipo_llamada)
     {
@@ -128,7 +123,7 @@ class ListaLlamadas implements IteratorAggregate
      *
      * @return  bool    VERDADERO si la llamada fue removida sin id de current_call
      */
-    function remover_llamada_sin_idcurrentcall($t, $id)
+    function remover_llamada_sin_idcurrentcall($t, $id): bool
     {
         if (isset($this->_idcurrentcall_retrasado[$t]) &&
             in_array($id, $this->_idcurrentcall_retrasado[$t])) {

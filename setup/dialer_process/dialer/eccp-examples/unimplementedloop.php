@@ -13,7 +13,7 @@ try {
         } catch (Exception $e) {}
         $i++;
         $b = time();
-        if ($a != $b) {
+        if ($a !== $b) {
             print "\runimplemented request per second: $i    ";
             $a = $b;
         	$i = 0;

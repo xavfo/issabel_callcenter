@@ -21,12 +21,12 @@
   +----------------------------------------------------------------------+
   $Id: index.php,v 1.1 2010-12-02 08:12:41 Alberto Santos asantos.palosanto.com Exp $ */
 //include issabel framework
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/paloSantoDB.class.php";
-require_once "libs/paloSantoGrid.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/paloSantoDB.class.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
 
 function _moduleContent(&$smarty, $module_name)
 {  
@@ -44,7 +44,7 @@ function _moduleContent(&$smarty, $module_name)
 
     // Abrir conexión a la base de datos
     $pDB = new paloDB($arrConf['dsn_conn_database']);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_title", _tr("Error"));
         $smarty->assign("mb_message", _tr("Error when connecting to database")." ".$pDB->errMsg);
         return NULL;
@@ -60,12 +60,8 @@ function _moduleContent(&$smarty, $module_name)
     //actions
     $action = getAction();
     $content = "";
-
-    switch($action){
-        default:
-            $content = reportReportsBreak($smarty, $module_name, $local_templates_dir, $pDB);
-            break;
-    }
+    $content = reportReportsBreak($smarty, $module_name, $local_templates_dir, $pDB);
+    break;
     return $content;
 }
 
@@ -127,7 +123,7 @@ function reportReportsBreak($smarty, $module_name, $local_templates_dir, &$pDB)
           ) ;
     $datosBreaks = $oReportsBreak->getReportesBreak($sFechaInicio, $sFechaFinal);
     $mapa = array();    // Columna del break dado su ID
-    $sTagInicio = (!$bExportando) ? '<b>' : '';
+    $sTagInicio = ($bExportando) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
     $filaTotales = array($sTagInicio._tr('Total').$sTagFinal, '');
     foreach ($datosBreaks['breaks'] as $idBreak => $sNombreBreak) {
@@ -167,7 +163,7 @@ function reportReportsBreak($smarty, $module_name, $local_templates_dir, &$pDB)
 
         $arrData[] = $filaAgente;
     }
-    $sTagInicio = (!$bExportando) ? '<b>' : '';
+    $sTagInicio = ($bExportando) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
     foreach ($mapa as $iPos) $filaTotales[$iPos] = $sTagInicio.formatoSegundos($filaTotales[$iPos]).$sTagFinal;
     $arrData[] = $filaTotales;
@@ -212,7 +208,7 @@ function reportReportsBreak($smarty, $module_name, $local_templates_dir, &$pDB)
         if ($bExportando)
             return $oGrid->fetchGridCSV($arrGrid, $arrData);
         $sContenido = $oGrid->fetchGrid($arrGrid, $arrData);
-        if (strpos($sContenido, '<form') === FALSE)
+        if (!str_contains($sContenido, '<form'))
             $sContenido = "<form  method=\"POST\" style=\"margin-bottom:0;\" action=\"$url\">$sContenido</form>";
         return $sContenido;
     }
@@ -221,7 +217,7 @@ function reportReportsBreak($smarty, $module_name, $local_templates_dir, &$pDB)
 
 function createFieldFilter()
 {
-    $arrFormElements = array
+    return array
     (
         "txt_fecha_init"  => array
         (
@@ -242,16 +238,15 @@ function createFieldFilter()
             "VALIDATION_EXTRA_PARAM"    => "^[[:digit:]]{1,2}[[:space:]]+[[:alnum:]]{3}[[:space:]]+[[:digit:]]{4}$"
         ),
     );
-    return $arrFormElements;
 }
 
 
-function getAction()
+function getAction(): string
 {
     return "report"; 
 }
 
-function formatoSegundos($iSeg)
+function formatoSegundos($iSeg): string
 {
     $iHora = $iMinutos = $iSegundos = 0;
     $iSegundos = $iSeg % 60; $iSeg = ($iSeg - $iSegundos) / 60;

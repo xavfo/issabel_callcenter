@@ -24,18 +24,18 @@
 if (file_exists("/var/lib/asterisk/agi-bin/phpagi-asmanager.php")) {
     include_once "/var/lib/asterisk/agi-bin/phpagi-asmanager.php";
 } elseif (file_exists('libs/phpagi-asmanager.php')) {
-	include_once 'libs/phpagi-asmanager.php';
+	include_once __DIR__ . '/libs/phpagi-asmanager.php';
 } else {
 	die('Unable to find phpagi-asmanager.php');
 }
-include_once("libs/paloSantoDB.class.php");
+include_once(__DIR__ . "/libs/paloSantoDB.class.php");
 
 class Agentes
 {
     private $AGENT_FILE;
-    var $arrAgents;
+    public $arrAgents;
     private $_DB; // instancia de la clase paloDB
-    var $errMsg;
+    public $errMsg;
 
     function Agentes(&$pDB, $file = "/etc/asterisk/agents.conf")
     {
@@ -81,7 +81,7 @@ class Agentes
         	$paramQuery[] = $id;
             $where[] = 'number = ?';
         }
-        if (count($where) > 0) $sWhere = 'WHERE '.join(' AND ', $where);
+        if ($where !== []) $sWhere = 'WHERE '.implode(' AND ', $where);
         $sQuery = 
             "SELECT id, number, name, password, estatus, eccp_password ".
             "FROM agent $sWhere ORDER BY number";
@@ -244,7 +244,8 @@ class Agentes
         } else {
             $sLineaAgente = "agent => {$agent[0]},{$agent[1]},{$agent[2]}\n";
             $bModificado = FALSE;
-            for ($i = 0; $i < count($contenido); $i++) {
+            $contenidoCount = count($contenido);
+            for ($i = 0; $i < $contenidoCount; $i++) {
                 $regs = NULL;
                 if (preg_match('/^[[:space:]]*agent[[:space:]]*=>[[:space:]]*([[:digit:]]+),/', $contenido[$i], $regs) &&
                     $regs[1] == $agent[0]) {
@@ -455,7 +456,7 @@ class Agentes
             foreach ($lineas as $sLinea) {
                 // El primer número de la línea es el ID del agente a recuperar
                 $regs = NULL;
-                if (strpos($sLinea, 'agents online') === FALSE &&
+                if (!str_contains($sLinea, 'agents online') &&
                     preg_match('/^([[:digit:]]+)[[:space:]]*/', $sLinea, $regs)) {
                     $listaAgentes[] = $regs[1];
                 }
@@ -474,18 +475,15 @@ class Agentes
             $astman->disconnect();
             $data = $strAgentsOnline['data'];
             $res = explode($agentNum,$data);
-            if(is_array($res) && count($res)==2) {
-                return true;
-            }
-            return false;
+            return is_array($res) && count($res)==2;
         }
     }
 
-    function desconectarAgentes($arrAgentes)
+    function desconectarAgentes($arrAgentes): bool
     {
         $this->errMsg = NULL;
 
-        if (!(is_array($arrAgentes) && count($arrAgentes) > 0)) {
+        if (!(is_array($arrAgentes) && $arrAgentes !== [])) {
             $this->errMsg = "Lista de agentes no válida";
             return FALSE;
         }
@@ -495,8 +493,8 @@ class Agentes
             return FALSE;
         }
 
-        for ($i =0 ; $i < count($arrAgentes) ; $i++) {
-            $res = $this->Agentlogoff($astman, $arrAgentes[$i]);
+        foreach ($arrAgentes as $i => $arrAgente) {
+            $res = $this->Agentlogoff($astman, $arrAgente);
             if ($res['Response']=='Error') {
                 $this->errMsg = "Error logoff ".$res['Message'];
                 $astman->disconnect();

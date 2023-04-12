@@ -30,6 +30,7 @@
  */
 class HubServer extends MultiplexServer
 {
+    public $_log;
     private $_tuberias = array();   // Lista de tuberías, una por cada proceso
     private $_iNumFinalizados = 0;
     private $_inspectores = array();    // Lista de inspectores de mensajes
@@ -61,7 +62,9 @@ class HubServer extends MultiplexServer
     {
     	foreach ($this->_tuberias as $t) {
             $t->registrarMultiplexPadre($this);
-            $t->registrarManejador('*', '*', array($this, 'rutearMensaje'));
+            $t->registrarManejador('*', '*', function ($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos) {
+                return $this->rutearMensaje($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos);
+            });
         }
     }
 
@@ -94,7 +97,9 @@ class HubServer extends MultiplexServer
     function enviarFinalizacion()
     {
         foreach ($this->_tuberias as $k => $t) {
-            $t->registrarManejador('*', 'finalizacionTerminada', array($this, 'msg_finalizacionTerminada'));
+            $t->registrarManejador('*', 'finalizacionTerminada', function ($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos) {
+                return $this->msg_finalizacionTerminada($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos);
+            });
             $t->enviarMensajeDesdeFuente('HubProcess', $k, 'finalizando', NULL);
         }
     }

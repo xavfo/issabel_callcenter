@@ -21,12 +21,12 @@
 +----------------------------------------------------------------------+
 $Id: formulario $ */
 
-include_once("libs/paloSantoDB.class.php");
+include_once(__DIR__ . "/libs/paloSantoDB.class.php");
 /* Clase que implementa Formulario de Campanign de CallCenter (CC) */
 class paloSantoDataForm
 {
     private $_db; // instancia de la clase paloDB
-    var $errMsg;
+    public $errMsg;
 
     function paloSantoDataForm($pDB)
     {
@@ -61,7 +61,7 @@ class paloSantoDataForm
             $where[] = 'estatus = ?';
             break;
         }
-        $cond = (count($where) > 0) ? ' WHERE '.implode(' AND ', $where) : '';
+        $cond = ($where !== []) ? ' WHERE '.implode(' AND ', $where) : '';
         
         return array($cond, $param);
     }
@@ -128,7 +128,7 @@ class paloSantoDataForm
             /* Convertir enumeración separada por comas en valores separados */
             if ($tuplacampo['tipo'] == 'LIST') {
                 $enumval = explode(',', $tuplacampo['value']);
-                if (count($enumval) > 0 && $enumval[count($enumval) - 1] == '')
+                if ($enumval !== [] && $enumval[count($enumval) - 1] == '')
                     array_pop($enumval);
                 $tuplacampo['value'] = $enumval;
             } else {
@@ -139,7 +139,7 @@ class paloSantoDataForm
         return $campos;
     }
     
-    function activacionFormulario($id_formulario, $bEstado)
+    function activacionFormulario($id_formulario, $bEstado): bool
     {
         $bExito = $this->_db->genQuery(
             'UPDATE form SET estatus = ? WHERE id = ?',
@@ -151,7 +151,7 @@ class paloSantoDataForm
         return true;
     }
     
-    function eliminarFormulario($id_formulario)
+    function eliminarFormulario($id_formulario): bool
     {
         // Revisar si hay datos recolectados para este formulario
         foreach (array('form_data_recolected', 'form_data_recolected_entry') as $tabla) {
@@ -200,7 +200,7 @@ class paloSantoDataForm
         return TRUE;        
     }
     
-    function guardarFormulario($id, $nombre, $descripcion, $formfields)
+    function guardarFormulario($id, $nombre, $descripcion, $formfields): bool
     {
         if (!is_null($id) && !is_numeric($id)) {
             $this->errMsg = _tr('Error Id Form');
@@ -216,7 +216,7 @@ class paloSantoDataForm
         }
         
         // Asignar ordenamiento según posición de arreglo
-        for ($i = 0; $i < count($formfields); $i++) {
+        foreach ($formfields as $i => $formfield) {
             $formfields[$i]['orden'] = $i + 1;
         }
         
@@ -292,7 +292,7 @@ class paloSantoDataForm
         $camposBorrar = array_diff($camposExistentes, $camposRef);
         
         // No debe de borrarse campos de un formulario si lo usan las campañas
-        if (count($camposBorrar) > 0 && $iNumCampaniasUsanForm > 0) {
+        if ($camposBorrar !== [] && $iNumCampaniasUsanForm > 0) {
             $this->errMsg = _tr("This form is been used by any campaign");
             return FALSE;
         }        

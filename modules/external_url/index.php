@@ -21,12 +21,12 @@
   +----------------------------------------------------------------------+
   $Id: paloSantoCampaignCC.class.php,v 1.2 2008/06/06 07:15:07 cbarcos Exp $ */
 
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/misc.lib.php";
-include_once "libs/paloSantoConfig.class.php";
-include_once "libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
+include_once __DIR__ . "/libs/paloSantoConfig.class.php";
+include_once __DIR__ . "/libs/paloSantoGrid.class.php";
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -54,18 +54,11 @@ function _moduleContent(&$smarty, $module_name)
     $contenidoModulo = '';
     $sAction = 'list_urls';
     if (isset($_GET['action'])) $sAction = $_GET['action'];
-    switch ($sAction) {
-    case 'new_url':
-        $contenidoModulo = newURL($pDB, $smarty, $module_name, $local_templates_dir);
-        break;
-    case 'edit_url':
-        $contenidoModulo = editURL($pDB, $smarty, $module_name, $local_templates_dir);
-        break;
-    case 'list_urls':
-    default:
-        $contenidoModulo = listURL($pDB, $smarty, $module_name, $local_templates_dir);
-        break;
-    }
+    $contenidoModulo = match ($sAction) {
+        'new_url' => newURL($pDB, $smarty, $module_name, $local_templates_dir),
+        'edit_url' => editURL($pDB, $smarty, $module_name, $local_templates_dir),
+        default => listURL($pDB, $smarty, $module_name, $local_templates_dir),
+    };
 
     return $contenidoModulo;
 }
@@ -194,12 +187,12 @@ function formEditURL($pDB, $smarty, $module_name, $local_templates_dir, $id_url)
     }
 
     if (!is_null($tuplaURL)) {
-    	if (!isset($_POST['description'])) $_POST['description'] = $tuplaURL['description'];
+        if (!isset($_POST['description'])) $_POST['description'] = $tuplaURL['description'];
         if (!isset($_POST['urltemplate'])) $_POST['urltemplate'] = $tuplaURL['urltemplate'];
         if (!isset($_POST['opentype'])) $_POST['opentype'] = $tuplaURL['opentype'];
         if (!isset($_POST['active'])) $_POST['active'] = $tuplaURL['active'] ? 'on' : 'off';
-    } else {
-    	if (!isset($_POST['active'])) $_POST['active'] = 'on';
+    } elseif (!isset($_POST['active'])) {
+        $_POST['active'] = 'on';
     }
 
     // En esta implementación el formulario trabaja exclusivamente en modo 'input'
@@ -212,8 +205,8 @@ function formEditURL($pDB, $smarty, $module_name, $local_templates_dir, $id_url)
             $smarty->assign("mb_title", _tr("Validation Error"));
             $arrErrores=$oForm->arrErroresValidacion;
             $strErrorMsg = "<b>"._tr('The following fields contain errors').":</b><br/>";
-            if(is_array($arrErrores) && count($arrErrores) > 0){
-                foreach($arrErrores as $k=>$v) {
+            if(is_array($arrErrores) && $arrErrores !== []){
+                foreach(array_keys($arrErrores) as $k) {
                     $strErrorMsg .= "$k, ";
                 }
             }

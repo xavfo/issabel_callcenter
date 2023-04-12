@@ -25,13 +25,13 @@
   $Id: index.php,v 1.1 2007/01/09 23:49:36 alex Exp $
 */
 
-require_once("libs/paloSantoDB.class.php");
+require_once(__DIR__ . "/libs/paloSantoDB.class.php");
 
 
 class UsuariosECCP
 {
     private $_DB; // instancia de la clase paloDB
-    var $errMsg;
+    public $errMsg;
 
     function UsuariosECCP(&$pDB)
     {

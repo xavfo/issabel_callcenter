@@ -20,8 +20,8 @@
 | The Initial Developer of the Original Code is PaloSanto Solutions    |
 +----------------------------------------------------------------------+
 */
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -44,17 +44,14 @@ function _moduleContent(&$smarty, $module_name)
     $smarty->assign("MODULE_NAME", $module_name);
 
     $pDB = new paloDB($arrConf['cadena_dsn']);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_message", _tr('Error when connecting to database')." ".$pDB->errMsg);
     }
 
-    switch (getParameter('action')) {
-    case 'add':
-        return agregarNumeros($pDB, $smarty, $module_name, $local_templates_dir);
-    case 'list':
-    default:
-        return listarNumeros($pDB, $smarty, $module_name);
-    }
+    return match (getParameter('action')) {
+        'add' => agregarNumeros($pDB, $smarty, $module_name, $local_templates_dir),
+        default => listarNumeros($pDB, $smarty, $module_name),
+    };
 }
 
 function listarNumeros($pDB, $smarty, $module_name)
@@ -74,7 +71,7 @@ function listarNumeros($pDB, $smarty, $module_name)
     
     // Ejecutar operaciones indicadas en formularios
     $oDataForm = new paloSantoDontCall($pDB);
-    if (isset($_POST['id']) && is_array($_POST['id']) && count($_POST['id']) > 0) {
+    if (isset($_POST['id']) && is_array($_POST['id']) && $_POST['id'] !== []) {
         $bExito = TRUE;
         if (isset($_POST['remove'])) {
             $mb = array(

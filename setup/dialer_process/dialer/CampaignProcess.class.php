@@ -67,7 +67,7 @@ class CampaignProcess extends TuberiaProcess
      */
     private $_finalizandoPrograma = FALSE;
 
-    public function inicioPostDemonio($infoConfig, &$oMainLog)
+    public function inicioPostDemonio($infoConfig = null, &$oMainLog = null): bool
     {
         $this->_log = $oMainLog;
         $this->_multiplex = new MultiplexServer(NULL, $this->_log);
@@ -107,7 +107,9 @@ class CampaignProcess extends TuberiaProcess
             $this->_tuberia->registrarManejador('AMIEventProcess', $k, array($this, "msg_$k"));
 
         // Registro de manejadores de eventos desde HubProcess
-        $this->_tuberia->registrarManejador('HubProcess', 'finalizando', array($this, "msg_finalizando"));
+        $this->_tuberia->registrarManejador('HubProcess', 'finalizando', function ($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos) {
+            return $this->msg_finalizando($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos);
+        });
 
         $this->DEBUG = $this->_configDB->dialer_debug;
         return TRUE;
@@ -177,7 +179,7 @@ class CampaignProcess extends TuberiaProcess
         $dbConn = NULL;
     }
 
-    public function procedimientoDemonio()
+    public function procedimientoDemonio(): bool
     {
         // Verificar posible desconexión de la base de datos
         if (is_null($this->_db)) {
@@ -222,8 +224,8 @@ class CampaignProcess extends TuberiaProcess
                     // Verificar si se ha cambiado la configuración
                     $this->_verificarCambioConfiguracion();
 
-                    if ($this->_ociosoSinEventos) {
-                        if (!is_null($this->_ami)) $this->_actualizarCampanias();
+                    if ($this->_ociosoSinEventos && !is_null($this->_ami)) {
+                        $this->_actualizarCampanias();
                     }
                 }
 
@@ -247,7 +249,7 @@ class CampaignProcess extends TuberiaProcess
         return TRUE;
     }
 
-    public function limpiezaDemonio($signum)
+    public function limpiezaDemonio($signum = null)
     {
         // Mandar a cerrar todas las conexiones activas
         $this->_multiplex->finalizarServidor();
@@ -508,10 +510,8 @@ PETICION_CAMPANIAS_ENTRANTES;
 
         // Parámetros requeridos para predicción de colocación de llamadas
         $infoCola = $this->_tuberia->AMIEventProcess_infoPrediccionCola($infoCampania['queue']);
-        if (is_null($infoCola)) {
-            if ($oPredictor->examinarColas(array($infoCampania['queue']))) {
-                $infoCola = $oPredictor->infoPrediccionCola($infoCampania['queue']);
-            }
+        if (is_null($infoCola) && $oPredictor->examinarColas(array($infoCampania['queue']))) {
+            $infoCola = $oPredictor->infoPrediccionCola($infoCampania['queue']);
         }
 
         if (is_null($infoCola)) {
@@ -551,7 +551,7 @@ PETICION_CAMPANIAS_ENTRANTES;
 //añadido por hgmnetwork.com 26-06-2018 para forzar mas llamadas por agente
 //miramos si como mínimo hay 1 llamada por hacer que fuerce mas, si es 0 llamadas ignora para no hacer llamadas sin agentes libres o apunto
 if ($iNumLlamadasColocar>0){
-$iNumLlamadasColocar= $iNumLlamadasColocar + $this->_configDB->dialer_forzar_sobrecolocar;
+$iNumLlamadasColocar += $this->_configDB->dialer_forzar_sobrecolocar;
 };
  $this->_log->output('DEBUG: '.__METHOD__." (campania {$infoCampania['id']} ".
                 "cola {$infoCampania['queue']}): resumen de predicción:\n".
@@ -928,7 +928,7 @@ SQL_LLAMADA_COLOCADA;
     /**
      * Procedimiento para obtener el número de segundos de reserva de una campaña
      */
-    private function _getSegundosReserva($idCampaign)
+    private function _getSegundosReserva($idCampaign): int
     {
         return 30;  // TODO: volver configurable en DB o por campaña
     }
@@ -968,8 +968,7 @@ PETICION_AGENTES_AGENDADOS;
             $sFechaSys,
             $sHoraFinal,
             $sHoraInicio));
-        $listaAgentes = $recordset->fetchAll(PDO::FETCH_COLUMN, 0);
-        return $listaAgentes;
+        return $recordset->fetchAll(PDO::FETCH_COLUMN, 0);
     }
 
     /**
@@ -1070,11 +1069,11 @@ PETICION_LLAMADAS_AGENTE;
         } elseif (stripos($sTrunk, '$OUTNUM$') !== FALSE) {
             // Este es un trunk personalizado que provee $OUTNUM$ ya preparado
             return array('TRUNK' => $sTrunk);
-        } elseif (strpos($sTrunk, 'SIP/') === 0
+        } elseif (str_starts_with($sTrunk, 'SIP/')
             || stripos($sTrunk, 'Zap/') === 0
             || stripos($sTrunk, 'DAHDI/') === 0
-            || strpos($sTrunk,  'IAX/') === 0
-            || strpos($sTrunk, 'IAX2/') === 0) {
+            || str_starts_with($sTrunk, 'IAX/')
+            || str_starts_with($sTrunk, 'IAX2/')) {
             // Este es un trunk Zap o SIP. Se debe concatenar el prefijo de marcado
             // (si existe), y a continuación el número a marcar.
             $infoTrunk = $this->_leerPropiedadesTrunk($sTrunk);
@@ -1111,9 +1110,8 @@ PETICION_LLAMADAS_AGENTE;
         /* Para evitar excesivas conexiones, se mantiene un cache de la información leída
          * acerca de un trunk durante los últimos 30 segundos.
          */
-        if (isset($this->_plantillasMarcado[$sTrunk])) {
-            if (time() - $this->_plantillasMarcado[$sTrunk]['TIMESTAMP'] >= 30)
-                unset($this->_plantillasMarcado[$sTrunk]);
+        if (isset($this->_plantillasMarcado[$sTrunk]) && time() - $this->_plantillasMarcado[$sTrunk]['TIMESTAMP'] >= 30) {
+            unset($this->_plantillasMarcado[$sTrunk]);
         }
         if (isset($this->_plantillasMarcado[$sTrunk])) {
             return $this->_plantillasMarcado[$sTrunk]['PROPIEDADES'];
@@ -1151,8 +1149,7 @@ PETICION_LLAMADAS_AGENTE;
                     );
                 }
                 $sPeticionSQL =
-                    'SELECT outcid AS CID, dialoutprefix AS PREFIX '.
-                    'FROM trunks WHERE tech = ? AND channelid = ?';
+                    'SELECT outcid AS CID, dialoutprefix AS PREFIX FROM trunks WHERE tech = ? AND channelid = ?';
                 $recordset = $dbConn->prepare($sPeticionSQL);
                 foreach ($listaIntentos as $tuplaIntento) {
                     $recordset->execute(array($tuplaIntento['tech'], $tuplaIntento['channelid']));
@@ -1180,13 +1177,13 @@ PETICION_LLAMADAS_AGENTE;
                 $recordset->execute(array($sTrunkConsulta));
                 $sVariable = $recordset->fetch(PDO::FETCH_COLUMN, 0);
                 $recordset->closeCursor();
-                if (!$sVariable && strpos($sTrunkConsulta, 'DAHDI') !== 0) {
+                if (!$sVariable && !str_starts_with($sTrunkConsulta, 'DAHDI')) {
                     $this->_log->output("ERR: al consultar información de trunk '$sTrunkConsulta' en FreePBX (1) - trunk no se encuentra!");
                     $dbConn = NULL;
                     return NULL;
                 }
 
-                if (!$sVariable && strpos($sTrunkConsulta, 'DAHDI') === 0) {
+                if (!$sVariable && str_starts_with($sTrunkConsulta, 'DAHDI')) {
                     /* Podría ocurrir que esta versión de FreePBX todavía guarda la
                      * información sobre troncales DAHDI bajo nombres ZAP. Para
                      * encontrarla, se requiere de transformación antes de la consulta.
@@ -1318,13 +1315,13 @@ PETICION_LLAMADAS_AGENTE;
         return $this->_construirListaParametros($lista);
     }
 
-    private function _construirListaParametros($listaVar)
+    private function _construirListaParametros($listaVar): string
     {
         $versionMinima = array(1, 6, 0);
         while (count($versionMinima) < count($this->_asteriskVersion))
-            array_push($versionMinima, 0);
+            $versionMinima[] = 0;
         while (count($versionMinima) > count($this->_asteriskVersion))
-            array_push($this->_asteriskVersion, 0);
+            $this->_asteriskVersion[] = 0;
         $sSeparador = ($this->_asteriskVersion >= $versionMinima) ? ',' : '|';
         return implode($sSeparador, $listaVar);
     }
@@ -1337,7 +1334,9 @@ PETICION_LLAMADAS_AGENTE;
         if ($this->DEBUG) {
             $this->_log->output('DEBUG: '.__METHOD__.' - '.print_r($datos, 1));
         }
-        call_user_func_array(array($this, '_verificarFinLlamadasAgendables'), $datos);
+        call_user_func_array(function ($sAgente, $id_campania) {
+            return $this->_verificarFinLlamadasAgendables($sAgente, $id_campania);
+        }, $datos);
     }
 
     public function msg_finalizando($sFuente, $sDestino, $sNombreMensaje, $iTimestamp, $datos)

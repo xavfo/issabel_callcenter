@@ -13,7 +13,7 @@ try {
     	$r = $x->getpauses();
         $i++;
         $b = time();
-        if ($a != $b) {
+        if ($a !== $b) {
             print "\rgetpauses request per second: $i    ";
             $a = $b;
         	$i = 0;

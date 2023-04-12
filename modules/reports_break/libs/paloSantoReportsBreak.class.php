@@ -24,7 +24,7 @@
 class paloSantoReportsBreak
 {
     private $_DB;
-    var $errMsg;
+    public $errMsg;
     
     function paloSantoReportsBreak(&$pDB)
     {

@@ -22,11 +22,11 @@
   +----------------------------------------------------------------------+
   $Id: index.php,v 1.1 2018-09-25 02:09:20 Nestor Islas nestor_islas@outlook.com Exp $ */
 //include issabel framework
-include_once "libs/paloSantoGrid.class.php";
-include_once "libs/paloSantoForm.class.php";
+include_once __DIR__ . "/libs/paloSantoGrid.class.php";
+include_once __DIR__ . "/libs/paloSantoForm.class.php";
 
-require_once "modules/agent_console/libs/issabel2.lib.php";
-require_once "modules/agent_console/libs/JSON.php";
+require_once __DIR__ . "/modules/agent_console/libs/issabel2.lib.php";
+require_once __DIR__ . "/modules/agent_console/libs/JSON.php";
 
 function _moduleContent(&$smarty, $module_name)
 {
@@ -62,20 +62,12 @@ function _moduleContent(&$smarty, $module_name)
     $action = getAction();
     $content = "";
 
-    switch($action){
-        case 'create':
-            $content = loadListContacts($smarty, $module_name, $local_templates_dir, $pDB, $arrConf);
-        break;
-        case 'view':
-            $content = viewList($smarty, $module_name, $local_templates_dir, $pDB, $arrConf);
-        break;
-		case 'getLists':
-            $content = manejarMonitoreo_getList($smarty, $module_name, $local_templates_dir, $pDB, $arrConf);
-        break;
-		default:
-            $content = reportLists($smarty, $module_name, $local_templates_dir, $pDB, $arrConf);
-            break;
-    }
+    $content = match ($action) {
+        'create' => loadListContacts($smarty, $module_name, $local_templates_dir, $pDB, $arrConf),
+        'view' => viewList($smarty, $module_name, $local_templates_dir, $pDB, $arrConf),
+        'getLists' => manejarMonitoreo_getList($smarty, $module_name, $local_templates_dir, $pDB, $arrConf),
+        default => reportLists($smarty, $module_name, $local_templates_dir, $pDB, $arrConf),
+    };
     return $content;
 }
 
@@ -96,7 +88,7 @@ function reportLists($smarty, $module_name, $local_templates_dir, &$pDB, $arrCon
             $smarty->assign("mb_title",_tr('success_title_deleted'));
             $smarty->assign("mb_message", _tr('success_message_deleted'));
         } else {
-            $msg_error = ($pCampaign_Lists->errMsg!="") ? "<br/>".$pCampaign_Lists->errMsg:"";
+            $msg_error = ($pCampaign_Lists->errMsg != "") ? "<br/>".$pCampaign_Lists->errMsg:"";
             $smarty->assign("mb_title", _tr('error_title_deleted'));
             $smarty->assign("mb_message", _tr('error_message_deleted').$msg_error);
         }
@@ -166,20 +158,12 @@ function reportLists($smarty, $module_name, $local_templates_dir, &$pDB, $arrCon
             $arrTmp[5] = htmlentities(utf8_encode($value['upload']), ENT_COMPAT, "UTF-8").'&nbsp;';
             $arrTmp[6] = '<span id="total_calls_'.$value['id'].'">'.htmlentities($value['total_calls'], ENT_COMPAT, "UTF-8").'</span>';;
             $arrTmp[7] = '<span id="pending_calls_'.$value['id'].'">'.htmlentities($value['pending_calls'], ENT_COMPAT, "UTF-8").'</span>';
-            switch ($value['status']) {
-                case 1:
-                    $label_status = '<span class="label label-success">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>';
-                    break;
-                case 2:
-                    $label_status = '<span class="label label-info">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>';
-                    break;
-                case 3:
-                    $label_status = '<span class="label label-default">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>';
-                    break;
-                default:
-                    $label_status = htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'&nbsp;';
-                    break;
-            }
+            $label_status = match ($value['status']) {
+                1 => '<span class="label label-success">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>',
+                2 => '<span class="label label-info">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>',
+                3 => '<span class="label label-default">'.htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'</span>',
+                default => htmlentities($value['sStatus'], ENT_COMPAT, "UTF-8").'&nbsp;',
+            };
             $arrTmp[8] = $label_status;
             $arrTmp[9] = htmlentities($value['date_entered'], ENT_COMPAT, "UTF-8").'&nbsp;';
             $arrTmp[10] = ($value['status'] == 3)
@@ -196,10 +180,9 @@ function reportLists($smarty, $module_name, $local_templates_dir, &$pDB, $arrCon
         'activate'      =>  _tr('label_cb_activate'),
         'deactivate'    =>  _tr('label_cb_deactivate'),
     ), null, 'change_status');
-    $content = $oGrid->fetchGrid();
     //end grid parameters
 
-    return $content;
+    return $oGrid->fetchGrid();
 }
 
 function viewList($smarty, $module_name, $local_templates_dir, &$pDB, $arrConf)
@@ -245,14 +228,12 @@ function viewList($smarty, $module_name, $local_templates_dir, &$pDB, $arrConf)
     $smarty->assign('labelDetailBar', $labelDetailBar);
     $smarty->assign('label_bar_chart', _tr('label_bar_chart'));
 
-    $contentView = $smarty->fetch("$local_templates_dir/view_list.tpl");
-
-    return $contentView;
+    return $smarty->fetch("$local_templates_dir/view_list.tpl");
 }
 
 function loadListContacts($smarty, $module_name, $local_templates_dir, &$pDB, $arrConf)
 {
-    require_once "modules/campaign_out/libs/paloSantoCampaignCC.class.php";
+    require_once __DIR__ . "/modules/campaign_out/libs/paloSantoCampaignCC.class.php";
     require_once "modules/$module_name/libs/paloContactInsert.class.php";
 
     $id_campaign = (isset($_REQUEST['id_campaign']) && ctype_digit($_REQUEST['id_campaign']))
@@ -357,8 +338,7 @@ function createFieldFilter(){
     $arrFilter = array(
 	    "" => _tr(""),
                     );
-
-    $arrFormElements = array(
+    return array(
             "filter_field" => array("LABEL"                  => _tr("label_search"),
                                     "REQUIRED"               => "no",
                                     "INPUT_TYPE"             => "SELECT",
@@ -372,7 +352,6 @@ function createFieldFilter(){
                                     "VALIDATION_TYPE"        => "text",
                                     "VALIDATION_EXTRA_PARAM" => ""),
                     );
-    return $arrFormElements;
 }
 
 function manejarMonitoreo_getList($smarty, $module_name, $local_templates_dir, &$pDB, $arrConf)
@@ -399,21 +378,24 @@ function manejarMonitoreo_getList($smarty, $module_name, $local_templates_dir, &
 
 function getAction()
 {
-    if(getParameter("save_new")) //Get parameter by POST (submit)
+    if (getParameter("save_new")) {
+        //Get parameter by POST (submit)
         return "save_new";
-    else if(getParameter("save_edit"))
+    } elseif (getParameter("save_edit")) {
         return "save_edit";
-    else if(getParameter("delete")) 
+    } elseif (getParameter("delete")) {
         return "delete";
-    else if(getParameter("action")=="new_list")      //Get parameter by GET (command pattern, links)
+    } elseif (getParameter("action")=="new_list") {
+        //Get parameter by GET (command pattern, links)
         return "create";
-    else if(getParameter("action")=="view")      //Get parameter by GET (command pattern, links)
+    } elseif (getParameter("action")=="view") {
+        //Get parameter by GET (command pattern, links)
         return "view";
-    else if(getParameter("action")=="edit")
+    } elseif (getParameter("action")=="edit") {
         return "update";
-	else if(getParameter("action")=="getLists")
+    } elseif (getParameter("action")=="getLists") {
         return "getLists";
-    else
+    } else
         return "report"; //cancel
 }
 ?>

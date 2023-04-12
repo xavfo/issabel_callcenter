@@ -30,7 +30,8 @@
  */
 class TuberiaMensaje extends MultiplexConn
 {
-    private $_nombreFuente;             // La fuente de mensajes que llegan
+    public $sKey;
+    public $multiplexSrv;             // La fuente de mensajes que llegan
     private $_socks = NULL;             // Par de sockets antes de fork()
     private $_listaEventos = array();   // Eventos pendientes por procesar
     private $_respuesta = NULL;         // Respuesta recibida del último comando
@@ -41,9 +42,8 @@ class TuberiaMensaje extends MultiplexConn
     // Manejadores de eventos: _manejadoresEventos[$fuente][$nombreMsg] = array($obj, $metodo)
     private $_manejadoresEventos = array();
 
-    function __construct($sFuente)
+    function __construct(private $_nombreFuente)
     {
-        $this->_nombreFuente = $sFuente;
         $this->_socks = stream_socket_pair(
             STREAM_PF_UNIX,
             STREAM_SOCK_STREAM,
@@ -117,7 +117,7 @@ class TuberiaMensaje extends MultiplexConn
     }
     
     // Generar un paquete serializado para RPC
-    private function _generarPaquete(&$v)
+    private function _generarPaquete(&$v): string
     {
     	$s = serialize($v);
         return pack("La*", strlen($s), $s);
@@ -161,10 +161,9 @@ class TuberiaMensaje extends MultiplexConn
         $paquete = array_shift($this->_listaEventos);
         if (isset($paquete['fuente']) && isset($paquete['destino']) && 
             isset($paquete['mensaje'])) {
-        	$sFuente = $paquete['fuente'];
+            $sFuente = $paquete['fuente'];
             $sDestino = $paquete['destino'];
             $sNombreMensaje = $paquete['mensaje'];
-            
             // Buscar el manejador
             $hFuente = isset($this->_manejadoresEventos[$sFuente])
                 ? $this->_manejadoresEventos[$sFuente]
@@ -189,17 +188,14 @@ class TuberiaMensaje extends MultiplexConn
                     $this->_log->output("ERR: no se ha registrado manejador para $sNombreMensaje($sFuente-->$sDestino)");
                 return;
             }
-
             if ((is_array($handler) && count($handler) >= 2 && is_object($handler[0]) && 
                 method_exists($handler[0], $handler[1])) || (!is_array($handler) && function_exists($handler))) {
                 call_user_func($handler, $sFuente, $sDestino, $sNombreMensaje, $paquete['timestamp'], $paquete['datos']);
-            } else {
-                if (!is_null($this->_log))
-                    $this->_log->output("ERR: no se encuentra manejador registrado para $sNombreMensaje($sFuente-->$sDestino)");
+            } elseif (!is_null($this->_log)) {
+                $this->_log->output("ERR: no se encuentra manejador registrado para $sNombreMensaje($sFuente-->$sDestino)");
             }
-        } else {
-            if (!is_null($this->_log))
-                $this->_log->output("ERR: se descarta paquete mal formado: ".print_r($paquete, 1));
+        } elseif (!is_null($this->_log)) {
+            $this->_log->output("ERR: se descarta paquete mal formado: ".print_r($paquete, 1));
         }
     }
     
@@ -262,7 +258,7 @@ class TuberiaMensaje extends MultiplexConn
      */
     function __call($sMetodo, $args)
     {
-    	if (substr($sMetodo, 0, 4) == 'msg_') {
+    	if (str_starts_with($sMetodo, 'msg_')) {
             $l = explode('_', $sMetodo, 3);
             $this->enviarMensaje($l[1], $l[2], $args);
         } else {

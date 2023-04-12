@@ -119,7 +119,7 @@ class Uploader_CSV
         while ($tupla = fgetcsv($hArchivo, 8192, ',')) {
             $iNumLinea++;
             if (function_exists('mb_convert_encoding')) {
-                foreach ($tupla as $k => $v)
+                foreach (array_keys($tupla) as $k)
                     $tupla[$k] = mb_convert_encoding($tupla[$k], 'UTF-8', $sEncoding);
             }
             $tupla[0] = trim($tupla[0]);
@@ -144,8 +144,8 @@ class Uploader_CSV
                 // Como efecto colateral, $tupla pierde su primer elemento
                 $numero = array_shift($tupla);
                 $atributos = array();
-                for ($i = 0; $i < count($tupla); $i++) {
-                    $atributos[($i < count($clavesColumnas) && $clavesColumnas[$i] != '') ? $clavesColumnas[$i] : ($i + 1)] = $tupla[$i];
+                foreach ($tupla as $i => $singleTupla) {
+                    $atributos[($i < count($clavesColumnas) && $clavesColumnas[$i] != '') ? $clavesColumnas[$i] : ($i + 1)] = $singleTupla;
                 }
                 $idCall = $inserter->insertOneContact($numero, $atributos);
                 if (is_null($idCall)) {
@@ -184,8 +184,7 @@ class Uploader_CSV
                 else $listaPosterior[$sEnc] = _tr($sEnc);
             }
         }
-        $listaEncodings = array_merge($listaEncodings, $listaPosterior);
-        return $listaEncodings;
+        return array_merge($listaEncodings, $listaPosterior);
     }
 
     // Función que intenta adivinar la codificación de caracteres del archivo
@@ -211,7 +210,6 @@ class Uploader_CSV
         if (!$hArchivo) return 'UTF-8';
         for ($i = 0; $i < 20 && !feof($hArchivo); $i++) $sContenido .= fgets($hArchivo);
         fclose($hArchivo);
-        $sEncoding = mb_detect_encoding($sContenido, $listaEncodings);
-        return $sEncoding;
+        return mb_detect_encoding($sContenido, $listaEncodings);
     }
 }

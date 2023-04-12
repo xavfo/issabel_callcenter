@@ -67,7 +67,8 @@
   */
   class AGI
   {
-   /**
+   public $asm;
+    /**
     * Request variables read in on initialization.
     *
     * Often contains any/all of the following:
@@ -92,7 +93,7 @@
     * @var array
     * @access public
     */
-    var $request;
+    public $request;
 
    /**
     * Config variables
@@ -100,7 +101,7 @@
     * @var array
     * @access public
     */
-    var $config;
+    public $config;
 
    /**
     * Asterisk Manager
@@ -108,35 +109,35 @@
     * @var AGI_AsteriskManager
     * @access public
     */
-    var $asmanager;
+    public $asmanager;
 
    /**
     * Input Stream
     *
     * @access private
     */
-    var $in = NULL;
+    public $in = NULL;
 
    /**
     * Output Stream
     *
     * @access private
     */
-    var $out = NULL;
+    public $out = NULL;
 
    /**
     * FastAGI socket
     *
     * @access private
     */
-    var $socket = NULL;
+    public $socket = NULL;
 
    /**
     * Audio Stream
     *
     * @access public
     */
-    var $audio = NULL;
+    public $audio = NULL;
 
    /**
     * Constructor
@@ -248,21 +249,20 @@
     function channel_status($channel='')
     {
       $ret = $this->evaluate("CHANNEL STATUS $channel");
-      switch($ret['result'])
-      {
-        case -1: $ret['data'] = trim("There is no channel that matches $channel"); break;
-        case AST_STATE_DOWN: $ret['data'] = 'Channel is down and available'; break;
-        case AST_STATE_RESERVED: $ret['data'] = 'Channel is down, but reserved'; break;
-        case AST_STATE_OFFHOOK: $ret['data'] = 'Channel is off hook'; break;
-        case AST_STATE_DIALING: $ret['data'] = 'Digits (or equivalent) have been dialed'; break;
-        case AST_STATE_RING: $ret['data'] = 'Line is ringing'; break;
-        case AST_STATE_RINGING: $ret['data'] = 'Remote end is ringing'; break;
-        case AST_STATE_UP: $ret['data'] = 'Line is up'; break;
-        case AST_STATE_BUSY: $ret['data'] = 'Line is busy'; break;
-        case AST_STATE_DIALING_OFFHOOK: $ret['data'] = 'Digits (or equivalent) have been dialed while offhook'; break;
-        case AST_STATE_PRERING: $ret['data'] = 'Channel has detected an incoming call and is waiting for ring'; break;
-        default: $ret['data'] = "Unknown ({$ret['result']})"; break;
-      }
+      $ret['data'] = match ($ret['result']) {
+          -1 => trim("There is no channel that matches $channel"),
+          AST_STATE_DOWN => 'Channel is down and available',
+          AST_STATE_RESERVED => 'Channel is down, but reserved',
+          AST_STATE_OFFHOOK => 'Channel is off hook',
+          AST_STATE_DIALING => 'Digits (or equivalent) have been dialed',
+          AST_STATE_RING => 'Line is ringing',
+          AST_STATE_RINGING => 'Remote end is ringing',
+          AST_STATE_UP => 'Line is up',
+          AST_STATE_BUSY => 'Line is busy',
+          AST_STATE_DIALING_OFFHOOK => 'Digits (or equivalent) have been dialed while offhook',
+          AST_STATE_PRERING => 'Channel has detected an incoming call and is waiting for ring',
+          default => "Unknown ({$ret['result']})",
+      };
       return $ret;
     }
 
@@ -322,17 +322,16 @@
     }
 
    /**
-    * Executes the specified Asterisk application with given options.
-    *
-    * @link http://www.voip-info.org/wiki-exec
-    * @link http://www.voip-info.org/wiki-Asterisk+-+documentation+of+application+commands
-    * @param string $application
-    * @param mixed $options
-    * @return array, see evaluate for return information. ['result'] is whatever the application returns, or -2 on failure to find application
-    */
-    function exec($application, $options)
+     * Executes the specified Asterisk application with given options.
+     *
+     * @link http://www.voip-info.org/wiki-exec
+     * @link http://www.voip-info.org/wiki-Asterisk+-+documentation+of+application+commands
+     * @param string $application
+     * @return array, see evaluate for return information. ['result'] is whatever the application returns, or -2 on failure to find application
+     */
+    function exec($application, mixed $options)
     {
-      if(is_array($options)) $options = join('|', $options);
+      if(is_array($options)) $options = implode('|', $options);
       return $this->evaluate("EXEC $application $options");
     }
 
@@ -864,10 +863,9 @@
    function fastpass_say_digits(&$buffer, $digits, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -893,10 +891,9 @@
    function fastpass_say_number(&$buffer, $number, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -922,10 +919,9 @@
    function fastpass_say_phonetic(&$buffer, $text, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -951,10 +947,9 @@
    function fastpass_say_time(&$buffer, $time=NULL, $escape_digits='')
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -983,10 +978,9 @@
    function fastpass_stream_file(&$buffer, $filename, $escape_digits='', $offset=0)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -1012,10 +1006,9 @@
    function fastpass_text2wav(&$buffer, $text, $escape_digits='', $frequency=8000)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -1041,10 +1034,9 @@
    function fastpass_swift(&$buffer, $text, $escape_digits='', $frequency=8000, $voice=NULL)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -1069,10 +1061,9 @@
    function fastpass_say_punctuation(&$buffer, $text, $escape_digits='', $frequency=8000)
    {
      $proceed = false;
-     if($escape_digits != '' && $buffer != '')
+     if($escape_digits != '' && $buffer != '' && !strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
      {
-       if(!strpos(chr(255) . $escape_digits, $buffer{strlen($buffer)-1}))
-         $proceed = true;
+       $proceed = true;
      }
      if($buffer == '' || $proceed)
      {
@@ -1163,16 +1154,13 @@
     */
     function menu($choices, $timeout=2000)
     {
-      $keys = join('', array_keys($choices));
+      $keys = implode('', array_keys($choices));
       $choice = NULL;
       while(is_null($choice))
       {
         foreach($choices as $prompt)
         {
-          if($prompt{0} == '*')
-            $ret = $this->text2wav(substr($prompt, 1), $keys);
-          else
-            $ret = $this->stream_file($prompt, $keys);
+          $ret = $prompt{0} == '*' ? $this->text2wav(substr($prompt, 1), $keys) : $this->stream_file($prompt, $keys);
 
           if($ret['code'] != AGIRES_OK || $ret['result'] == -1)
           {
@@ -1237,7 +1225,7 @@
         $d = $callerid{0};
         $callerid = explode($d, substr($callerid, 1));
         $ret['name'] = array_shift($callerid);
-        $callerid = join($d, $callerid);
+        $callerid = implode($d, $callerid);
       }
 
       $callerid = explode('@', trim($callerid, '<> '));
@@ -1247,17 +1235,17 @@
       else
       {
         $ret['protocol'] = array_shift($username);
-        $ret['username'] = join(':', $username);
+        $ret['username'] = implode(':', $username);
       }
 
-      $callerid = join('@', $callerid);
+      $callerid = implode('@', $callerid);
       $host = explode(':', $callerid);
       if(count($host) == 1)
         $ret['host'] =  $host[0];
       else
       {
         $ret['host'] = array_shift($host);
-        $ret['port'] = join(':', $host);
+        $ret['port'] = implode(':', $host);
       }
 
       return $ret;
@@ -1295,7 +1283,7 @@
         if(!file_exists("$fname.txt"))
         {
           $fp = fopen("$fname.txt", 'w');
-          fputs($fp, $text);
+          fwrite($fp, $text);
           fclose($fp);
         }
 
@@ -1352,7 +1340,7 @@
         if(!file_exists("$fname.txt"))
         {
           $fp = fopen("$fname.txt", 'w');
-          fputs($fp, $text);
+          fwrite($fp, $text);
           fclose($fp);
         }
 
@@ -1423,7 +1411,7 @@
               case '6': $mode = 'NUMERIC'; break;
               case '7': $mode = 'SYMBOL'; break;
               case '8': $mode = 'UPPERCASE'; break;
-              case '9': $text = explode(' ', $text); unset($text[count($text)-1]); $text = join(' ', $text); break; // backspace a word
+              case '9': $text = explode(' ', $text); unset($text[count($text)-1]); $text = implode(' ', $text); break; // backspace a word
             }
             $code = substr($code, 1);
             $command = false;
@@ -1440,7 +1428,7 @@
             $text .= $symbol['k'.$code];
         }
         $this->say_punctuation($text);
-      } while(substr($result['result'], -2) == '**');
+      } while(str_ends_with($result['result'], '**'));
       return $text;
     }
 
@@ -1559,7 +1547,7 @@
         $str = substr($str, 1) . "\n";
 
         $line = is_null($this->socket) ? @fgets($this->in, 4096) : @socket_read($this->socket, 4096, PHP_NORMAL_READ);
-        while(substr($line, 0, 3) != $ret['code'] && $count < 5)
+        while(substr($line, 0, 3) !== $ret['code'] && $count < 5)
         {
           $str .= $line;
           $line = is_null($this->socket) ? @fgets($this->in, 4096) : @socket_read($this->socket, 4096, PHP_NORMAL_READ);
@@ -1589,7 +1577,7 @@
           {
 	    $tmp = trim($token);
 	    $tmp = $tmp{0} == '(' ? substr($tmp,1):$tmp;
-	    $tmp = substr($tmp,-1) == ')' ? substr($tmp,0,strlen($tmp)-1):$tmp;
+	    $tmp = str_ends_with($tmp, ')') ? substr($tmp,0,strlen($tmp)-1):$tmp;
 	    $ret['data'] .= ' ' . trim($tmp);
             if($token{strlen($token)-1} == ')') $in_token = false;
           }
@@ -1630,14 +1618,11 @@
     {
       static $busy = false;
 
-      if($this->config['phpagi']['debug'] != false)
-      {
-        if(!$busy) // no conlogs inside conlog!!!
-        {
+      if ($this->config['phpagi']['debug'] != false && !$busy) {
+          // no conlogs inside conlog!!!
           $busy = true;
           $this->verbose($str, $vbl);
           $busy = false;
-        }
       }
     }
 
@@ -1658,11 +1643,10 @@
         if(!function_exists('is_executable') || is_executable($path . DIRECTORY_SEPERATOR . $cmd))
           return $path . DIRECTORY_SEPERATOR . $cmd;
 
-      if(is_null($checkpath))
+      if(is_null($checkpath) && substr(strtoupper(PHP_OS)) != 'WIN')
       {
-        if(substr(strtoupper(PHP_OS, 0, 3)) != 'WIN')
-          return $this->which($cmd, '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:'.
-                                    '/usr/X11R6/bin:/usr/local/apache/bin:/usr/local/mysql/bin');
+        return $this->which($cmd, '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:'.
+                                  '/usr/X11R6/bin:/usr/local/apache/bin:/usr/local/mysql/bin');
       }
       return false;
     }
@@ -1678,12 +1662,11 @@
     {
       $f = explode(DIRECTORY_SEPARATOR, $folder);
       $base = '';
-      for($i = 0; $i < count($f); $i++)
-      {
-        $base .= $f[$i];
-        if($f[$i] != '' && !file_exists($base))
-          mkdir($base, $perms);
-        $base .= DIRECTORY_SEPARATOR;
+      foreach ($f as $i => $singleF) {
+          $base .= $singleF;
+          if($singleF != '' && !file_exists($base))
+            mkdir($base, $perms);
+          $base .= DIRECTORY_SEPARATOR;
       }
     }	
   }
@@ -1752,7 +1735,8 @@
       {
         $message .= "\n\n$file:\n";
         $code = @file($file);
-        for($i = max(0, $line - 10); $i < min($line + 10, count($code)); $i++)
+        $codeCount = count($code);
+        for($i = max(0, $line - 10); $i < min($line + 10, $codeCount); $i++)
           $message .= ($i + 1)."\t$code[$i]";
       }
 

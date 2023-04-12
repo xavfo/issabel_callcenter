@@ -22,19 +22,17 @@
  $Id: DialerProcess.class.php,v 1.48 2009/03/26 13:46:58 alex Exp $ */
 
 // Para obtener los estados de miembros definidos en Agente.class.php
-require_once 'Agente.class.php';
+require_once __DIR__ . '/Agente.class.php';
 
 class QueueShadow
 {
-    var $DEBUG = FALSE;
-    private $_log;
+    public $DEBUG = FALSE;
 
     private $_queues = array();
     private $_queueflags = NULL;
 
-    function __construct($log)
+    function __construct(private $_log)
     {
-        $this->_log = $log;
     }
 
     /**
@@ -112,8 +110,8 @@ class QueueShadow
                 unset($this->_queues[$q]);
             } else {
                 // Acumular colas sin banderas activas
-                if (!($this->_queues[$q]['eventwhencalled'] && $this->_queues[$q]['eventmemberstatus'])) {
-                    if ($q != 'default') $colasSinEventos[] = $q;
+                if (!($this->_queues[$q]['eventwhencalled'] && $this->_queues[$q]['eventmemberstatus']) && $q != 'default') {
+                    $colasSinEventos[] = $q;
                 }
 
                 foreach (array_keys($this->_queues[$q]['members']) as $m) {
@@ -127,7 +125,7 @@ class QueueShadow
         if ($this->DEBUG) {
             $this->_log->output('DEBUG: '.__METHOD__.': estado de colas: '.print_r($this->_queues, TRUE));
         }
-        if (count($colasSinEventos) > 0) {
+        if ($colasSinEventos !== []) {
             sort($colasSinEventos);
             $this->_log->output('WARN: '.__METHOD__.': para mejorar el desempeño de '.
                 'campañas salientes, se recomienda activar eventwhencalled y '.
@@ -217,7 +215,7 @@ class QueueShadow
         $this->_queues[$params['Queue']]['callers']++;
     }
 
-    function msg_Leave($params)
+    function msg_Leave($params): bool
     {
         if (!isset($this->_queues[$params['Queue']])) {
             $this->_log->output('WARN: '.__METHOD__.': no se encuentra cola '.$params['Queue']);

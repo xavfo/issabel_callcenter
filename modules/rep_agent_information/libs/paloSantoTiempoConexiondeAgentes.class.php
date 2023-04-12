@@ -24,7 +24,7 @@
 class paloSantoTiempoConexiondeAgentes
 {
     private $_DB;
-    var $errMsg;
+    public $errMsg;
 
     function paloSantoTiempoConexiondeAgentes(&$pDB)
     {
@@ -141,7 +141,7 @@ SQL_REPORTE_BREAKS;
     function obtener_agente(){
         $sql = "select number from agent limit 1";
         $result=$this->_DB->getFirstRowQuery($sql, true);
-        if(is_array($result) && count($result)>0)
+        if(is_array($result) && $result !== [])
             return $result['number'];
         else
             return;

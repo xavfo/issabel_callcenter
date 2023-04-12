@@ -21,14 +21,14 @@
   +----------------------------------------------------------------------+
   $Id: new_campaign.php $ */
 
-require_once('libs/paloSantoDB.class.php');
-require_once 'libs/paloSantoConfig.class.php';
-include_once 'libs/paloSantoQueue.class.php';
+require_once(__DIR__ . '/libs/paloSantoDB.class.php');
+require_once __DIR__ . '/libs/paloSantoConfig.class.php';
+include_once __DIR__ . '/libs/paloSantoQueue.class.php';
 
 class paloSantoLoginLogout
 {
     private $_DB; // instancia de la clase paloDB
-    var $errMsg;
+    public $errMsg;
 
     function paloSantoLoginLogout(&$pDB)
     {
@@ -68,7 +68,7 @@ class paloSantoLoginLogout
                 $result = $this->_DB->getFirstRowQuery(
                     'SELECT id, queue from queue_call_entry where queue = ?',
                     TRUE, array($value[0]));
-                if (is_array($result) && count($result)>0) {
+                if (is_array($result) && $result !== []) {
                     // La clave debe ser cadena para que in_array en paloForm funcione
                     $arrQueue[$result['id']] =  $result['queue'];
                 }
@@ -169,8 +169,7 @@ SQL_REGISTROS;
          */
         foreach ($ultimoOnline as $agentid => $agentOnline) {
         	$tuple = $this->_DB->getFirstRowQuery(
-                'SELECT COUNT(*) AS N FROM audit '.
-                'WHERE id_agent = ? AND id_break IS NULL AND datetime_init > ?',
+                'SELECT COUNT(*) AS N FROM audit WHERE id_agent = ? AND id_break IS NULL AND datetime_init > ?',
                 TRUE, array($agentid, $agentOnline['datetime_init']));
             if (!is_array($tuple)) {
                 $this->errMsg = $this->_DB->errMsg;

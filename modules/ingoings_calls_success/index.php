@@ -21,10 +21,10 @@
  +----------------------------------------------------------------------+
  $Id: new_campaign.php $ */
 
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/paloSantoDB.class.php";
-require_once "libs/paloSantoGrid.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/paloSantoDB.class.php";
+require_once __DIR__ . "/libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
 
 if (!function_exists('_tr')) {
     function _tr($s)
@@ -70,7 +70,7 @@ function _moduleContent(&$smarty, $module_name)
 
     // se conecta a la base
     $pDB = new paloDB($arrConf["cadena_dsn"]);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_message", _tr("Error when connecting to database")." ".$pDB->errMsg);
         return '';
     }
@@ -139,17 +139,19 @@ function _moduleContent(&$smarty, $module_name)
     $filaTotal = array_fill(0, 4, 0);
     foreach ($arrDatosReporte as $cola => $infoCola) {
         $filaCola = array($infoCola['success'], $infoCola['abandoned'], $infoCola['wait_sec'], $infoCola['total']);
-        for ($i = 0; $i < count($filaCola); $i++)
-            $filaTotal[$i] += $filaCola[$i];
+        foreach ($filaCola as $i => $singleFilaCola) {
+            $filaTotal[$i] += $singleFilaCola;
+        }
         $filaCola[2] = format_time($filaCola[2]);
         array_unshift($filaCola, $cola);
         $arrData[] = $filaCola;
     }
     $filaTotal[2] = format_time($filaTotal[2]);
     array_unshift($filaTotal, _tr('Total'));
-    $sTagInicio = (!$bExportando) ? '<b>' : '';
+    $sTagInicio = ($bExportando) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
-    for ($i = 0; $i < count($filaTotal); $i++)
+    $filaTotalCount = count($filaTotal);
+    for ($i = 0; $i < $filaTotalCount; $i++)
         $filaTotal[$i] = $sTagInicio.$filaTotal[$i].$sTagFinal;
     $arrData[] = $filaTotal;
     
@@ -157,7 +159,7 @@ function _moduleContent(&$smarty, $module_name)
     return $oGrid->fetchGrid();
 }
 
-function format_time($iSec)
+function format_time($iSec): string
 {
     $iMin = ($iSec - ($iSec % 60)) / 60; $iSec %= 60;
     $iHora =  ($iMin - ($iMin % 60)) / 60; $iMin %= 60;

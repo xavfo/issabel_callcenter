@@ -24,9 +24,9 @@
 class MultiplexServer
 {
     protected $_oLog;        // Objeto log para reportar problemas
-    protected $_hEscucha;    // Socket de escucha para nuevas conexiones
-    private $_conexiones;    // Lista de conexiones atendidas con clientes
-    private $_uniqueid;
+    protected $_hEscucha = FALSE;    // Socket de escucha para nuevas conexiones
+    private $_conexiones = array();    // Lista de conexiones atendidas con clientes
+    private int $_uniqueid = 0;
 
     // Lista de objetos escucha, de tipos variados
     protected $_listaConn = array();
@@ -43,10 +43,7 @@ class MultiplexServer
     function __construct($sUrlSocket, &$oLog)
     {
         $this->_oLog =& $oLog;
-        $this->_conexiones = array();
-        $this->_uniqueid = 0;
         $errno = $errstr = NULL;
-        $this->_hEscucha = FALSE;
         if (!is_null($sUrlSocket)) {
             $this->_hEscucha = stream_socket_server($sUrlSocket, $errno, $errstr);
             if (!$this->_hEscucha) {
@@ -126,7 +123,7 @@ class MultiplexServer
         if ($iNumCambio === false) {
             // Interrupción, tal vez una señal
             $this->_oLog->output("INFO: select() finaliza con fallo - señal pendiente?");
-        } elseif ($iNumCambio > 0 || count($listoLeer) > 0 || count($listoEscribir) > 0) {
+        } elseif ($iNumCambio > 0 || $listoLeer !== [] || $listoEscribir !== []) {
             if (in_array($this->_hEscucha, $listoLeer)) {
                 // Entra una conexión nueva
                 $this->_procesarConexionNueva();
@@ -249,7 +246,7 @@ class MultiplexServer
      *
      * @return Clave a usar para identificar la conexión
      */
-    protected function agregarConexion($hConexion)
+    protected function agregarConexion(mixed $hConexion)
     {
         $nuevaConn = array(
             'socket'                =>  $hConexion,

@@ -21,9 +21,9 @@
   +----------------------------------------------------------------------+
   $Id: new_campaign.php $ */
 
-require_once "libs/paloSantoForm.class.php";
-require_once "libs/misc.lib.php";
-include_once "libs/paloSantoGrid.class.php";
+require_once __DIR__ . "/libs/paloSantoForm.class.php";
+require_once __DIR__ . "/libs/misc.lib.php";
+include_once __DIR__ . "/libs/paloSantoGrid.class.php";
 
 if (!function_exists('_tr')) {
     function _tr($s)
@@ -69,7 +69,7 @@ function _moduleContent(&$smarty, $module_name)
 	
     // se conecta a la base
     $pDB = new paloDB($arrConf["cadena_dsn"]);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign("mb_message", _tr("Error when connecting to database")." ".$pDB->errMsg);
         return '';
     }
@@ -181,16 +181,18 @@ function _moduleContent(&$smarty, $module_name)
         if ($iMaxWait < $histdata['max_wait']) $iMaxWait = $histdata['max_wait'];
         $iTotalCalls += $histdata['total_calls'];
         $iTotalWait += $histdata['total_wait'];
-        for ($i = 0; $i < count($histdata['hist']); $i++)
+        $itemsCount = count($histdata['hist']);
+        for ($i = 0; $i < $itemsCount; $i++)
             $histTotal[$i] += $histdata['hist'][$i];
     }
     array_unshift($histTotal, _tr("Total"));
     $histTotal[] = number_format(($iTotalCalls > 0) ? ($iTotalWait / $iTotalCalls) : 0, 0);
     $histTotal[] = $iMaxWait;
     $histTotal[] = $iTotalCalls;
-    $sTagInicio = (!$bExportando) ? '<b>' : '';
+    $sTagInicio = ($bExportando) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
-    for ($i = 0; $i < count($histTotal); $i++)
+    $histTotalCount = count($histTotal);
+    for ($i = 0; $i < $histTotalCount; $i++)
         $histTotal[$i] = $sTagInicio.$histTotal[$i].$sTagFinal;
     $arrData[] = $histTotal;
 

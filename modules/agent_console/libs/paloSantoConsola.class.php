@@ -25,12 +25,13 @@
  * Clase que contiene la funcionalidad principal de la consola de agente.
  */
 
-require_once 'libs/paloSantoDB.class.php';
-require_once 'ECCP.class.php';
+require_once __DIR__ . '/libs/paloSantoDB.class.php';
+require_once __DIR__ . '/ECCP.class.php';
 
 class PaloSantoConsola
 {
-    var $errMsg = '';    // Mensajes de error
+    public $_errMsg;
+    public $errMsg = '';    // Mensajes de error
     private $_oDB_asterisk = NULL;     // Conexión a base de datos asterisk (FreePBX)
     private $_oDB_call_center = NULL;  // Conexión a base de datos call_center
     private $_astman = NULL;
@@ -143,10 +144,8 @@ class PaloSantoConsola
         $infoConfig = parse_ini_file($sNombreArchivo, TRUE);
         if (is_array($infoConfig)) {
             foreach ($infoConfig as $login => $infoLogin) {
-                if ($login != 'general') {
-                    if (isset($infoLogin['secret']) && isset($infoLogin['read']) && isset($infoLogin['write'])) {
-                        return array($login, $infoLogin['secret']);
-                    }
+                if ($login != 'general' && (isset($infoLogin['secret']) && isset($infoLogin['read']) && isset($infoLogin['write']))) {
+                    return array($login, $infoLogin['secret']);
                 }
             }
         } else {
@@ -168,7 +167,7 @@ class PaloSantoConsola
         if (!is_null($this->_eccp)) {
             try {
                 $this->_eccp->disconnect();
-            } catch (Exception $e) {}
+            } catch (Exception) {}
             $this->_eccp = NULL;
         }
     }
@@ -303,14 +302,10 @@ class PaloSantoConsola
         $tupla = $oDB->getFirstRowQuery(
             'SELECT config_value FROM valor_config WHERE config_key = ?',
             TRUE, array('dialer.timeout_inactivity'));
-        if (!is_array($tupla) || count($tupla) <= 0)
-            $iTimeoutMin = 15;
-        else $iTimeoutMin = (int)$tupla['config_value'];
+        $iTimeoutMin = !is_array($tupla) || count($tupla) <= 0 ? 15 : (int)$tupla['config_value'];
 
         $regs = NULL;
-        if (preg_match('|^\w+/(\d+)$|', $sExtension, $regs))
-            $sNumero = $regs[1];
-        else $sNumero = $sExtension;
+        $sNumero = preg_match('|^\w+/(\d+)$|', $sExtension, $regs) ? $regs[1] : $sExtension;
         try {
             $oECCP = $this->_obtenerConexion('ECCP');
             $loginResponse = $oECCP->loginagent($sNumero, NULL, $iTimeoutMin * 60);
@@ -507,9 +502,7 @@ class PaloSantoConsola
         $tupla = $oDB->getFirstRowQuery(
             'SELECT config_value FROM valor_config WHERE config_key = ?',
             TRUE, array('dialer.timeout_inactivity'));
-        if (!is_array($tupla) || count($tupla) <= 0)
-            $iTimeoutMin = 15;
-        else $iTimeoutMin = (int)$tupla['config_value'];
+        $iTimeoutMin = !is_array($tupla) || count($tupla) <= 0 ? 15 : (int)$tupla['config_value'];
 
         $iTimeoutSec = $iTimeoutMin * 60;
         if ($iTimeoutSec <= $iTimeoutPoll * 1.5)
@@ -1006,25 +999,25 @@ class PaloSantoConsola
                     $infoAgenteCola = $infoAgente;
                     if (isset($xml_agent->callsummary->incoming->queue)) {
                         foreach ($xml_agent->callsummary->incoming->queue as $xml_queuestat) {
-                            if ((string)$xml_queuestat['id'] == (string)$xml_queue) {
+                            if ((string)$xml_queuestat['id'] === (string)$xml_queue) {
                                 $infoAgenteCola['sec_calls'] += (int)$xml_queuestat->sec_calls;
                                 $infoAgenteCola['num_calls'] += (int)$xml_queuestat->num_calls;
                             }
                             if (isset($estadoAgente->callinfo->queuenumber) &&
-                                (string)$estadoAgente->callinfo->queuenumber == (string)$xml_queuestat['id']) {
+                                (string)$estadoAgente->callinfo->queuenumber === (string)$xml_queuestat['id']) {
                             }
                         }
                     }
                     if (isset($xml_agent->callsummary->outgoing->queue)) {
                         foreach ($xml_agent->callsummary->outgoing->queue as $xml_queuestat) {
-                            if ((string)$xml_queuestat['id'] == (string)$xml_queue) {
+                            if ((string)$xml_queuestat['id'] === (string)$xml_queue) {
                                 $infoAgenteCola['sec_calls'] += (int)$xml_queuestat->sec_calls;
                                 $infoAgenteCola['num_calls'] += (int)$xml_queuestat->num_calls;
                             }
                         }
                     }
                     if (isset($estadoAgente->callinfo->queuenumber) &&
-                        (string)$estadoAgente->callinfo->queuenumber == (string)$xml_queue) {
+                        (string)$estadoAgente->callinfo->queuenumber === (string)$xml_queue) {
                         $infoAgenteCola['linkstart'] = $linkstart;
                     }
                     $resumenColas[(string)$xml_queue][(string)$xml_agent->agentchannel] = $infoAgenteCola;

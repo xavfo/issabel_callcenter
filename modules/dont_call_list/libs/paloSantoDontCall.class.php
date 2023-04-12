@@ -25,7 +25,7 @@ class paloSantoDontCall
 {
     private $_db;
     private $_stmt;
-    var $errMsg;
+    public $errMsg;
 
     function paloSantoDontCall($pDB)
     {
@@ -68,12 +68,11 @@ class paloSantoDontCall
         return $recordset;
     }
 
-    function borrarDontCall($arrData)
+    function borrarDontCall($arrData): bool
     {
         $this->_db->beginTransaction();
         foreach ($arrData as $id_dnc) {
-            $sql = 'UPDATE calls SET dnc = 0 WHERE dnc = 1 AND phone IN '.
-                '(SELECT caller_id FROM dont_call WHERE id = ?)';
+            $sql = 'UPDATE calls SET dnc = 0 WHERE dnc = 1 AND phone IN (SELECT caller_id FROM dont_call WHERE id = ?)';
             if (!$this->_db->genQuery($sql, array($id_dnc))) {
                 $this->errMsg = $this->_db->errMsg;
                 $this->_db->rollBack();
@@ -90,7 +89,7 @@ class paloSantoDontCall
         return TRUE;
     }
 
-    private function _insertarNumero($dnc, &$loadReport)
+    private function _insertarNumero($dnc, &$loadReport): bool
     {
         if (count($this->_stmt) <= 0) {
             $this->_stmt['SELECT'] = $this->_db->conn->prepare(
@@ -109,14 +108,12 @@ class paloSantoDontCall
         $tupla = $this->_stmt['SELECT']->fetch(PDO::FETCH_ASSOC);
         $this->_stmt['SELECT']->closeCursor();
 
-        if (is_array($tupla) && count($tupla) > 0) {
+        if (is_array($tupla) && $tupla !== []) {
             // Número ya ha sido insertado
-            if ($tupla['status'] != 'A') {
-                // Activar número, si estaba inactivo
-                if (!$this->_stmt['UPDATE']->execute(array($tupla['id']))) {
-                    $this->errMsg = print_r($this->_stmt['UPDATE']->errorInfo(), TRUE);
-                    return FALSE;
-                }
+            // Activar número, si estaba inactivo
+            if ($tupla['status'] != 'A' && !$this->_stmt['UPDATE']->execute(array($tupla['id']))) {
+                $this->errMsg = print_r($this->_stmt['UPDATE']->errorInfo(), TRUE);
+                return FALSE;
             }
         } else {
             // Número debe de insertarse

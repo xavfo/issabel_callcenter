@@ -46,7 +46,7 @@ class HubProcess extends AbstractProcess implements iRoutedMessageHook
     // Último instante en que se verificó que los procesos estaban activos
     private $_iTimestampVerificacionProcesos = NULL;
 
-    public function inicioPostDemonio($infoConfig, &$oMainLog)
+    public function inicioPostDemonio($infoConfig = null, &$oMainLog = null): bool
     {
         $this->_log =& $oMainLog;
         $this->_config =& $infoConfig;
@@ -88,7 +88,7 @@ class HubProcess extends AbstractProcess implements iRoutedMessageHook
         return $bTareaActiva;
     }
 
-    public function procedimientoDemonio()
+    public function procedimientoDemonio(): bool
     {
         $bHayNuevasTareas = FALSE;
 
@@ -238,7 +238,7 @@ class HubProcess extends AbstractProcess implements iRoutedMessageHook
 
         $i = 0;
         foreach (array_keys($this->_tareas) as $sTarea)
-            if (strpos($sTarea, $sNombreClase.'-') === 0) $i++;
+            if (str_starts_with($sTarea, $sNombreClase.'-')) $i++;
         for (; $i < $min_workers; $i++) {
             $this->_iniciarTareaDinamica($sNombreClase);
             $bHayNuevasTareas = TRUE;
@@ -266,7 +266,7 @@ class HubProcess extends AbstractProcess implements iRoutedMessageHook
             $sTareaElegida = NULL;
             foreach (array_keys($this->_tareas) as $sTarea) {
                 if ($this->_revisarTareaActiva($sTarea) &&
-                    strpos($sTarea, 'ECCPWorkerProcess-') === 0 &&
+                    str_starts_with($sTarea, 'ECCPWorkerProcess-') &&
                     !isset($this->_conexionTareaOcupada[$sTarea]) &&
                     !in_array($sTarea, $this->_tareasUltimaPeticion)) {
                     $sTareaElegida = $sTarea;
@@ -284,7 +284,7 @@ class HubProcess extends AbstractProcess implements iRoutedMessageHook
             // El primer parámetro es la conexión proxy
             $this->_conexionTareaOcupada[$sTareaElegida] = $datos[0];
             $sDestino = $sTareaElegida;
-        } elseif (strpos($sFuente, 'ECCPWorkerProcess-') === 0 && $sDestino == 'ECCPProcess'
+        } elseif (str_starts_with($sFuente, 'ECCPWorkerProcess-') && $sDestino == 'ECCPProcess'
                 && $sNombreMensaje == 'eccpresponse') {
             /* Al mandar la respuesta asíncrona desde un ECCPWorkerProcess, se
              * debe de limpiar el estado de ocupado para esa instancia en
@@ -338,7 +338,7 @@ XML_CRASH_MSG;
         }
     }
 
-    public function limpiezaDemonio($signum)
+    public function limpiezaDemonio($signum = null)
     {
         // Propagar la señal si no es NULL
         if (!is_null($signum)) {

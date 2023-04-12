@@ -22,8 +22,8 @@
   $Id: default.conf.php,v 1.1 2008-09-03 01:09:56 Alex Villacís Lasso Exp $ */
 
 class paloSantoConfiguration {
-    var $_DB;
-    var $errMsg;
+    public $_DB;
+    public $errMsg;
 
     function paloSantoConfiguration(&$pDB)
     {
@@ -108,10 +108,8 @@ class paloSantoConfiguration {
         if (file_exists($pd)) {
             $pid = file_get_contents($pd);
             $regs = NULL;
-            if (preg_match('/^([[:digit:]]+)/', $pid, $regs)) {
-                if (file_exists("/proc/$regs[1]")) {
-                    $bDialerActivo = TRUE;
-                }
+            if (preg_match('/^([[:digit:]]+)/', $pid, $regs) && file_exists("/proc/$regs[1]")) {
+                $bDialerActivo = TRUE;
             }
         }
         return $bDialerActivo;

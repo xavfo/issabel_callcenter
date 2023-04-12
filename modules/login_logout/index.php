@@ -21,9 +21,9 @@
   +----------------------------------------------------------------------+
   $Id: new_campaign.php $ */
 
-require_once 'libs/misc.lib.php';
-require_once 'libs/paloSantoForm.class.php';
-require_once 'libs/paloSantoGrid.class.php';
+require_once __DIR__ . '/libs/misc.lib.php';
+require_once __DIR__ . '/libs/paloSantoForm.class.php';
+require_once __DIR__ . '/libs/paloSantoGrid.class.php';
 
 define ('LIMITE_PAGINA', 50);
 
@@ -71,7 +71,7 @@ function _moduleContent(&$smarty, $module_name)
     $local_templates_dir = "$base_dir/modules/$module_name/".$templates_dir.'/'.$arrConf['theme'];
 
     $pDB = new paloDB($arrConf["cadena_dsn"]);
-    if (!is_object($pDB->conn) || $pDB->errMsg!="") {
+    if (!is_object($pDB->conn) || $pDB->errMsg != "") {
         $smarty->assign('mb_message', _tr('Error when connecting to database')." ".$pDB->errMsg);
         return NULL;
     }
@@ -170,7 +170,7 @@ function listadoLoginLogout($pDB, $smarty, $module_name, $local_templates_dir)
 
     // Formato del arreglo de datos a mostrar
     $arrData = array();
-    $sTagInicio = (!$bExportando) ? '<b>' : '';
+    $sTagInicio = ($bExportando) ? '' : '<b>';
     $sTagFinal = ($sTagInicio != '') ? '</b>' : '';
     $recordSlice = $bExportando
         ? $recordset 
@@ -242,7 +242,7 @@ function generarComboColasEntrantes($oCalls)
 	return $comboColas + $oCalls->leerColasEntrantesValidas();
 }
 
-function format_time($iSec)
+function format_time($iSec): string
 {
     $iMin = ($iSec - ($iSec % 60)) / 60; $iSec %= 60;
     $iHora =  ($iMin - ($iMin % 60)) / 60; $iMin %= 60;

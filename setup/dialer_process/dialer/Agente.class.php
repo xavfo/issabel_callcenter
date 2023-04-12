@@ -32,25 +32,19 @@ define('AST_DEVICE_RINGING',    6);
 define('AST_DEVICE_RINGINUSE',  7);
 define('AST_DEVICE_ONHOLD',     8);
 
-class Agente
+class Agente implements \Stringable
 {
-    // Relaciones con otros objetos conocidos
-    private $_log;
-    private $_tuberia;
-
-    private $_listaAgentes;
-
     /* Referencia a la llamada atendida por el agente, o NULL si no atiende.
      * Para entrar y salir de hold se requiere [incoming/outgoing, canal cliente,
      * id call, id current call ]*/
     private $_llamada = NULL;
 
     // ID en la base de datos del agente
-    private $_id_agent = NULL;
-    private $_name = NULL;
+    private int $_id_agent;
+    private string $_name;
     private $_number = NULL;
-    private $_estatus = NULL;
-    private $_type = NULL;
+    private bool $_estatus;
+    private string $_type;
 
     /*  Estado de la consola. Los valores posibles son
         logged-out  No hay agente logoneado
@@ -114,21 +108,19 @@ class Agente
      * penalty en cada cola. */
     private $_colas_dinamicas = array();
 
-    var $llamada_agendada = NULL;
+    public $llamada_agendada = NULL;
 
     // Timestamp de inicio de login, debe setearse a NULL al entrar a estado logged-in
     private $_logging_inicio = NULL;
 
-    function __construct(ListaAgentes $lista, $idAgente, $iNumero, $sNombre,
-        $bEstatus, $sType, $tuberia, $log)
+    function __construct(private ListaAgentes $_listaAgentes, $idAgente, $iNumero, $sNombre,
+        $bEstatus, $sType, private $_tuberia, // Relaciones con otros objetos conocidos
+        private $_log)
     {
-        $this->_listaAgentes = $lista;
         $this->_id_agent = (int)$idAgente;
         $this->_name = (string)$sNombre;
         $this->_estatus = (bool)$bEstatus;
         $this->_type = (string)$sType;
-        $this->_tuberia = $tuberia;
-        $this->_log = $log;
         $this->resetTimeout();
 
         // Se setea vía interfaz pública para invocar __set()
@@ -179,7 +171,7 @@ class Agente
         $log->output($s);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return 'ID='.$this->id_agent.
             ' type='.$this->type.
@@ -187,7 +179,7 @@ class Agente
             ' '.$this->name;
     }
 
-    private function _strestadocolas()
+    private function _strestadocolas(): string
     {
         // El estado de la cola sólo es usable si eventmemberstatus está activo
         // para la cola en cuestión.
@@ -380,7 +372,9 @@ class Agente
     public function asyncQueuePause($ami, $nstate, $queue = NULL, $reason = '')
     {
         $ami->asyncQueuePause(
-            array($this, '_cb_QueuePause'),
+            function ($r, $sAgente, $nstate) {
+                return $this->_cb_QueuePause($r, $sAgente, $nstate);
+            },
             array($this->channel, $nstate),
             $queue, $this->channel, $nstate, $reason);
     }
@@ -488,14 +482,14 @@ class Agente
             'login_channel'     =>  $this->login_channel,
             'oncall'            =>  !is_null($this->llamada),
             'clientchannel'     =>  is_null($this->llamada) ? NULL : $this->llamada->actualchannel,
-            'waitedcallinfo'    =>  ((!is_null($this->llamada_agendada))
-                ? array(
+            'waitedcallinfo'    =>  ((is_null($this->llamada_agendada))
+                ? NULL
+                : array(
                     'calltype'          =>  $this->llamada_agendada->tipo_llamada,
                     'campaign_id'       =>  $this->llamada_agendada->campania->id,
                     'callid'            =>  $this->llamada_agendada->id_llamada,
                     'status'            =>  $this->llamada_agendada->status,
-                )
-                : NULL),
+                )),
         );
     }
 
@@ -532,7 +526,7 @@ class Agente
         $this->_estado_agente_colas = $nuevoEstado;
         asort($this->_estado_agente_colas);
 
-        return (count($colas_agregadas) > 0 || count($colas_quitadas) > 0);
+        return ($colas_agregadas !== [] || $colas_quitadas !== []);
     }
 
     public function actualizarEstadoEnCola($queue, $status)
@@ -562,7 +556,7 @@ class Agente
         $this->_colas_dinamicas = $lista;
         ksort($this->_colas_dinamicas);
 
-        return (count($colas_agregadas) > 0 || count($colas_quitadas) > 0);
+        return ($colas_agregadas !== [] || $colas_quitadas !== []);
     }
 
     public function diferenciaColasDinamicas()
@@ -584,7 +578,7 @@ class Agente
     public function hayColasDinamicasLogoneadas()
     {
         $currcolas = array_keys($this->_estado_agente_colas);
-        return (count(array_intersect($currcolas, $this->colas_dinamicas)) > 0);
+        return (array_intersect($currcolas, $this->colas_dinamicas) !== []);
     }
 
     public function nuevaMembresiaCola()
@@ -603,13 +597,17 @@ class Agente
     {
         if ($this->type == 'Agent') {
             $ami->asyncAgentlogoff(
-                array($this, '_cb_Agentlogoff'),
+                function ($r, $log) {
+                    return $this->_cb_Agentlogoff($r, $log);
+                },
                 array($log),
                 $this->number);
         } else {
             foreach ($this->colas_actuales as $q) {
                 $ami->asyncQueueRemove(
-                    array($this, '_cb_QueueRemove'),
+                    function ($r, $log, $q) {
+                        return $this->_cb_QueueRemove($r, $log, $q);
+                    },
                     array($log, $q),
                     $q, $this->channel);
             }

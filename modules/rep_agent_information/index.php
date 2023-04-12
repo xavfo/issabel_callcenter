@@ -21,11 +21,11 @@
   +----------------------------------------------------------------------+
   $Id: index.php,v 1.1.1.1 2009/07/27 09:10:19 dlopez Exp $ */
 
-include_once "libs/paloSantoGrid.class.php";
-include_once "libs/paloSantoDB.class.php";
-include_once "libs/paloSantoForm.class.php";
+include_once __DIR__ . "/libs/paloSantoGrid.class.php";
+include_once __DIR__ . "/libs/paloSantoDB.class.php";
+include_once __DIR__ . "/libs/paloSantoForm.class.php";
 //include_once "libs/paloSantoConfig.class.php";
-require_once "libs/misc.lib.php";
+require_once __DIR__ . "/libs/misc.lib.php";
 
 if (!function_exists('_tr')) {
     function _tr($s)
@@ -59,7 +59,7 @@ function _moduleContent(&$smarty, $module_name)
      //include module files
     include_once "modules/$module_name/configs/default.conf.php";
     include_once "modules/$module_name/libs/paloSantoTiempoConexiondeAgentes.class.php";
-    include_once "libs/paloSantoConfig.class.php";
+    include_once __DIR__ . "/libs/paloSantoConfig.class.php";
     $arrConf = array_merge($arrConf,$arrConfModule);
 
     // Obtengo la ruta del template a utilizar para generar el filtro.
@@ -111,7 +111,7 @@ NO_QUEUE_END;
     // TODO: reemplazar con lista desplegable de agentes en cola elegida
     $sAgenteOmision = $oCallsAgent->obtener_agente();
 
-    $arrFormElements = createFieldFilter($arrQueue);
+    $arrFormElements = createFieldFilter();
     $oFilterForm = new paloForm($smarty, $arrFormElements);
 
     // Valores iniciales de las variables
@@ -159,7 +159,7 @@ NO_QUEUE_END;
     $ub = $bExportando ? array('','') : array('<u><b>','</b></u>');
 
     $arrData = array();
-    if (is_array($r) && count($r) > 0) {
+    if (is_array($r) && $r !== []) {
         $tempTiempos = array(
             'monitoreadas'      =>  0,  // número de llamadas monitoreadas (estatus 'terminada')
             'llamadas_por_hora' =>  0,  // número de llamadas por hora (de todos los estados)
@@ -213,9 +213,9 @@ NO_QUEUE_END;
             );
             $iTotalSeg += $tupla['total_break'];
         }
-        for ($i = 0; $i < count($tempBreaks); $i++) {
-            $tempBreaks[$i][3] = number_format(100.0 * ($tempBreaks[$i][3] / $iTotalSeg), 2).' %';
-            $arrData[] = $tempBreaks[$i];
+        foreach ($tempBreaks as $i => $tempBreak) {
+            $tempBreaks[$i][3] = number_format(100.0 * ($tempBreak[3] / $iTotalSeg), 2).' %';
+            $arrData[] = $tempBreak;
         }
 
     } else {
@@ -284,7 +284,7 @@ NO_QUEUE_END;
         if ($bExportando)
             return $oGrid->fetchGridCSV($arrGrid, $arrData);
         $sContenido = $oGrid->fetchGrid($arrGrid, $arrData, $arrLang);
-        if (strpos($sContenido, '<form') === FALSE)
+        if (!str_contains($sContenido, '<form'))
             $sContenido = "<form  method=\"POST\" style=\"margin-bottom:0;\" action=\"$url\">$sContenido</form>";
         return $sContenido;
     }        
@@ -292,7 +292,7 @@ NO_QUEUE_END;
 
 function leerColasEntrantes($pDB, $pDB_asterisk)
 {
-    include_once "libs/paloSantoQueue.class.php";
+    include_once __DIR__ . "/libs/paloSantoQueue.class.php";
 
     $arrQueue = array();
     $oQueue = new paloQueue($pDB_asterisk);
@@ -301,7 +301,7 @@ function leerColasEntrantes($pDB, $pDB_asterisk)
         foreach($PBXQueues as $key => $value) {
             $query = "SELECT id, queue from queue_call_entry WHERE queue = ?";
             $result = $pDB->getFirstRowQuery($query, true, array($value[0]));
-            if (is_array($result) && count($result)>0) {
+            if (is_array($result) && $result !== []) {
                 $arrQueue[$result['queue']] =  $result['queue'];
             }
         }
@@ -309,7 +309,7 @@ function leerColasEntrantes($pDB, $pDB_asterisk)
     return $arrQueue;
 }
 
-function formatoSegundos($s)
+function formatoSegundos($s): string
 {
     $sec = $s % 60; $s = ($s - $sec) / 60;
     $min = $s % 60; $hora = ($s - $min) / 60;
@@ -318,7 +318,7 @@ function formatoSegundos($s)
 
 function createFieldFilter($arrQueue)
 {
-    $arrFormElements = array(
+    return array(
         "date_start"  => array(
             "LABEL"                  => _tr('Start Date'),
             "REQUIRED"               => "yes",
@@ -349,7 +349,6 @@ function createFieldFilter($arrQueue)
             "VALIDATION_TYPE"        => "ereg",
             "VALIDATION_EXTRA_PARAM" => "^[[:digit:]]+$"),
          );
-    return $arrFormElements;
 }
 
 ?>
