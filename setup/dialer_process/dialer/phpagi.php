@@ -1747,15 +1747,15 @@
       $ret = '';
       for($i = 0; $i < strlen($message); $i++)
       {
-        $c = ord($message{$i});
+        $c = ord($message[$i]);
         if($c == 10 || $c == 13 || $c == 9)
-          $ret .= $message{$i};
+          $ret .= $message[$i];
         elseif($c < 16)
           $ret .= '\x0' . dechex($c);
         elseif($c < 32 || $c > 127)
           $ret .= '\x' . dechex($c);
         else
-          $ret .= $message{$i};
+          $ret .= $message[$i];
       }
       $message = $ret;
 
