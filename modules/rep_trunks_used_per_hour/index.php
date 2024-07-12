@@ -84,7 +84,7 @@ function _moduleContent(&$smarty, $module_name)
     $accion = getAction();
     $content = "";
     $content = reportReportedeTroncalesusadasporHoraeneldia($smarty, $module_name, $local_templates_dir, $pDB, $arrConf, $pDB_asterisk);
-    break;
+    // break;
     return $content;
 }
 

@@ -27,7 +27,7 @@ class paloSantoDontCall
     private $_stmt;
     public $errMsg;
 
-    function paloSantoDontCall($pDB)
+    function __construct($pDB)
     {
         $this->_stmt = array();
         if (is_object($pDB)) {

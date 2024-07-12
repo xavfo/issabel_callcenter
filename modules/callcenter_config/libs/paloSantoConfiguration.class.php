@@ -25,7 +25,7 @@ class paloSantoConfiguration {
     public $_DB;
     public $errMsg;
 
-    function paloSantoConfiguration(&$pDB)
+    function __construct(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {

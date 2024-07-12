@@ -26,7 +26,7 @@ class paloSantoCallsDetail
     private $_DB;   // Conexión a la base de datos
     public $errMsg;    // Último mensaje de error
 
-    function paloSantoCallsDetail(&$pDB)
+    function __construct(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {
@@ -395,7 +395,7 @@ SQL_OUTGOING;
 
         // TODO: volver configurable
         $recordingpath = '/var/spool/asterisk/monitor';
-        if ($tupla['recordingfile']{0} != '/')
+        if ($tupla['recordingfile'][0] != '/')
             $tupla['recordingfile'] = $recordingpath.'/'.$tupla['recordingfile'];
         return array(
             $tupla['recordingfile'],            // Ruta de archivo real

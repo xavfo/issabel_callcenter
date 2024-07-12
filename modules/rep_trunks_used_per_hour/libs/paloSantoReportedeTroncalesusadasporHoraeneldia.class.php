@@ -24,7 +24,7 @@ class paloSantoReportedeTroncalesusadasporHoraeneldia {
     public $_DB;
     public $errMsg;
 
-    function paloSantoReportedeTroncalesusadasporHoraeneldia(&$pDB)
+    function __construct(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {

@@ -39,7 +39,7 @@ class PaloSantoConsola
 
     private $_agent = NULL;     // Si se ha elegido un agente, es de forma Agent/9000
 
-    function PaloSantoConsola($sAgent = NULL)
+    function __construct($sAgent = NULL)
     {
         if (!is_null($sAgent)) $this->_agent = $sAgent;
     }

@@ -37,7 +37,7 @@ class Agentes
     private $_DB; // instancia de la clase paloDB
     public $errMsg;
 
-    function Agentes(&$pDB, $file = "/etc/asterisk/agents.conf")
+    function __construct(&$pDB, $file = "/etc/asterisk/agents.conf")
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {
