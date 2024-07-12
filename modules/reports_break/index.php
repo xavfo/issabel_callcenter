@@ -61,7 +61,7 @@ function _moduleContent(&$smarty, $module_name)
     $action = getAction();
     $content = "";
     $content = reportReportsBreak($smarty, $module_name, $local_templates_dir, $pDB);
-    break;
+    // break;
     return $content;
 }
 

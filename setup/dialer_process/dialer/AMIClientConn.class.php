@@ -189,7 +189,7 @@ class AMIClientConn extends MultiplexConn
             array('ActionID' => FALSE),
     );
 
-    function AMIClientConn($dialSrv, $oMainLog)
+    function __construct($dialSrv, $oMainLog)
     {
         $this->oLogger = $oMainLog;
         $this->multiplexSrv = $dialSrv;

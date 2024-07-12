@@ -26,7 +26,7 @@ class paloSantoCampaign_Lists{
     public $errMsg;
     public $table = "campaign_lists";
 
-    function paloSantoCampaign_Lists(&$pDB)
+    function __construct(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {

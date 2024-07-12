@@ -145,7 +145,7 @@
     * @param string $config is the name of the config file to parse
     * @param array $optconfig is an array of configuration vars and vals, stuffed into $this->config['phpagi']
     */
-    function AGI($config=NULL, $optconfig=array(), $socket=NULL)
+    function __construct($config=NULL, $optconfig=array(), $socket=NULL)
     {
       // load config
       if(!is_null($config) && file_exists($config))

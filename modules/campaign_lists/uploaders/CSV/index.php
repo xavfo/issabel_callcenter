@@ -125,7 +125,7 @@ class Uploader_CSV
             $tupla[0] = trim($tupla[0]);
             if (count($tupla) == 1 && trim($tupla[0]) == '') {
                 // Línea vacía
-            } elseif (strlen($tupla[0]) > 0 && $tupla[0]{0} == '#') {
+            } elseif (strlen($tupla[0]) > 0 && $tupla[0][0] == '#') {
                 // Línea que empieza por numeral
             } elseif (!preg_match('/^([\d#\*])+$/', $tupla[0])) {
                 if ($iNumLinea == 1) {

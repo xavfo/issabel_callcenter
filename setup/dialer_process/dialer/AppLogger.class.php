@@ -28,7 +28,7 @@ class AppLogger
     private $sNombreArchivo;
 
     // Crear una nueva instancia de AppLogger
-    function AppLogger()
+    function __construct()
     {
         $this->LOGHANDLE = NULL;
         $this->PREFIJO = NULL;

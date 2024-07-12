@@ -29,7 +29,7 @@ class paloSantoUploadFile
     private $_numInserciones;
     private $_numActualizaciones;
 	
-	function paloSantoUploadFile(&$pDB)
+	function __construct(&$pDB)
 	{
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {
@@ -109,9 +109,9 @@ class paloSantoUploadFile
                 $tupla[0] = trim($tupla[0]);
     			if (count($tupla) == 1 && trim($tupla[0]) == '') {
     				// Línea vacía
-    			} elseif (strlen($tupla[0]) > 0 && $tupla[0]{0} == '#') {
+    			} elseif (strlen($tupla[0]) > 0 && $tupla[0][0] == '#') {
     				// Línea que empieza por numeral
-    			} elseif (!ereg('^[[:digit:]#*]+$', $tupla[0])) {
+    			} elseif (!preg_match('/^[0-9#*]+$/', $tupla[0])) {
                     if ($iNumLinea == 1) {
                         // Podría ser una cabecera de nombres de columnas
                         array_shift($tupla);

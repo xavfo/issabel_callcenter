@@ -1349,7 +1349,7 @@ LEER_CAMPANIA;
             if ($sLinea === FALSE) break;
             $sLinea = trim($sLinea);
             if ($sLinea == '') continue;
-            if ($sLinea{0} == '#') continue;
+            if ($sLinea[0] == '#') continue;
 
             $regs = NULL;
             if (preg_match('/^([[:alpha:]]+)[[:space:]]*=[[:space:]]*(.*)$/', $sLinea, $regs)) switch ($regs[1]) {

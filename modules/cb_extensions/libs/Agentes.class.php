@@ -36,7 +36,7 @@ class Agentes
     private $_DB; // instancia de la clase paloDB
     public $errMsg;
 
-    function Agentes(&$pDB)
+    function __construct(&$pDB)
     {
         // Se recibe como parámetro una referencia a una conexión paloDB
         if (is_object($pDB)) {
@@ -234,7 +234,7 @@ class Agentes
 
     function deleteAgent($id_agent): bool
     {
-        if (!ereg('^[[:digit:]]+$', $id_agent)) {
+        if (!preg_match('/^[0-9]+$/', $id_agent)) {
             $this->errMsg = '(internal) Invalid agent information';
             return FALSE;
         }
