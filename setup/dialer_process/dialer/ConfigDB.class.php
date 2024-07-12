@@ -185,7 +185,7 @@ class ConfigDB
     private $_fuenteCredAst = ASTCONN_CRED_DESCONOCIDO;
 
 	// Constructor del objeto de configuración
-    function ConfigDB(&$dbConn, &$log)
+    function __construct(&$dbConn, &$log)
     {
         $this->_dbConn = $dbConn;
         $this->_log = $log;

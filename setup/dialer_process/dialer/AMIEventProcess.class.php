@@ -1410,7 +1410,7 @@ class AMIEventProcess extends TuberiaProcess
         // Se arma mapa de miembros tal como aparecen en database --> channel
         $arrExt = array();
         foreach ($total_agents as $tupla) {
-            $extension = $tupla['type']{0} . $tupla['number'];
+            $extension = $tupla['type'][0] . $tupla['number'];
             $arrExt[$extension] = $tupla['type'].'/'.$tupla['number'];
         }
 
